@@ -1,0 +1,20 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: go-crypto-app
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/<twoj-user>/<twoje-repo-infra> # Wskaż na SWOJE repo GitOps
+    path: charts/go-crypto # Zaraz stworzymy ten folder
+    targetRevision: HEAD
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: crypto-space
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

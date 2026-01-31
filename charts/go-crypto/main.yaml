@@ -1,0 +1,66 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: go-crypto
+  namespace: crypto-space
+  labels:
+    app: go-crypto
+spec:
+  replicas: 3 # Chcemy 3 pody, żeby widzieć Load Balancing
+  selector:
+    matchLabels:
+      app: go-crypto
+  template:
+    metadata:
+      labels:
+        app: go-crypto
+    spec:
+      containers:
+        - name: app
+          image: 438950223046.dkr.ecr.us-east-1.amazonaws.com/test:latest # <--- ZMIEŃ TO
+          ports:
+            - containerPort: 8080
+              name: http
+          resources:
+            requests:
+              cpu: "100m"  # Ważne dla Autoscalera
+              memory: "64Mi"
+            limits:
+              cpu: "500m"  # Ograniczamy, żeby łatwo "zajechać" CPU
+              memory: "128Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: go-crypto-svc
+  namespace: crypto-space
+  labels:
+    app: go-crypto
+    release: prometheus-stack # Ważne: Etykieta, żeby Prometheus Operator to zauważył
+spec:
+  selector:
+    app: go-crypto
+  ports:
+    - port: 80
+      targetPort: 8080
+      name: http
+---
+# TO JEST KLUCZ DO METRYK W PROMETHEUSIE
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: go-crypto-monitor
+  namespace: monitoring # ServiceMonitor najlepiej trzymać tam gdzie Prometheusa
+  labels:
+    release: prometheus-stack # Musi pasować do labeli Prometheusa!
+spec:
+  selector:
+    matchLabels:
+      app: go-crypto # Szukaj serwisu z tym labelem
+  namespaceSelector:
+    matchNames:
+      - crypto-space # Szukaj serwisu w tym namespace
+  endpoints:
+    - port: http
+      path: /metrics # Tu jest wystawiona Twoja tablica rozdzielcza
+      interval: 15s
