@@ -3,6 +3,7 @@ name: Frontend Production Pipeline
 on:
   push:
     branches: [ "main" ]
+    tags: [ "v*.*.*" ]
     pull_request:
       branches: [ "main" ]
     paths: [ "02-app-source-code/frontend/**" ]
@@ -54,54 +55,55 @@ jobs:
           exit-code: '1'
 
   delivery:
-    name: Build & Push
     needs: integration 
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
         uses: actions/checkout@v6
-
       - name: Configure AWS Credentials 
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ env.IAM_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
-
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
-
+      - name: Docker Metadata
+        id: meta
+        uses: docker/metadata-action@v6
+        with:
+          images: |
+            ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}
+          tags: |
+            type=raw,value=main-{{sha}},enable=${{ github.ref == 'refs/heads/main' }}
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=raw,value=latest,enable=${{ startsWith(github.ref, 'refs/tags/v') }}
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-
-      # Build and export to Docker so we can scan the image
       - name: Build and Load
         uses: docker/build-push-action@v6
         with:
           context: ./02-app-source-code/frontend
           load: true
-          tags: ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
+          tags: ${{ steps.meta.outputs.tags }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-
-      # Scans the actual Docker image OS (Alpine/Debian)
-      - name: Scan Docker Image (Trivy)
+      - name: Scan Docker Image (Trivy Image)
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
+          image-ref: ${{ fromJSON(steps.meta.outputs.json).tags[0] }}
           format: 'table'
           exit-code: '1'
           ignore-unfixed: true
           severity: 'CRITICAL,HIGH'
-
-      # Push to AWS ECR only if scanning passes
       - name: Push to ECR
         uses: docker/build-push-action@v6
         with:
           context: ./02-app-source-code/frontend
           push: true
-          tags: |
-            ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
-            ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
