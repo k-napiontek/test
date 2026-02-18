@@ -7,6 +7,7 @@ on:
     pull_request:
       branches: [ "main" ]
     paths: [ "02-app-source-code/frontend/**" ]
+  workflow_dispatch:
 
 permissions:
   id-token: write   
