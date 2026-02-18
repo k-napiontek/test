@@ -1,0 +1,50 @@
+name: 'Terraform Core Engine'
+
+on:
+  workflow_call:
+    inputs:
+      working_directory:
+        required: true
+        type: string
+    secrets:
+      TF_API_TOKEN:
+        required: true
+
+jobs:
+  terraform:
+    name: 'Plan & Apply'
+    runs-on: ubuntu-latest
+    
+    defaults:
+      run:
+        working-directory: ${{ inputs.working_directory }}
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
+
+      - name: Terraform Init
+        run: terraform init
+
+      - name: Terraform Format
+        run: terraform fmt -check
+
+      - name: Terraform Validate
+        run: terraform validate
+
+      # === LOGIKA PLAN VS APPLY ===
+
+      # Uruchom PLAN tylko, gdy jesteśmy w trakcie Pull Requesta
+      - name: Terraform Plan
+        if: github.event_name == 'pull_request'
+        run: terraform plan -no-color
+
+      # Uruchom APPLY automatycznie tylko, gdy weszło to do gałęzi 'main' (Push)
+      - name: Terraform Apply
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: terraform apply -auto-approve

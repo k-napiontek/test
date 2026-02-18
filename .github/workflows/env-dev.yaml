@@ -1,0 +1,51 @@
+name: 'Environment: DEV'
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - '01-terraform-infra/envs/dev/**'
+      - '01-terraform-infra/modules/**'
+      
+  pull_request:
+    branches: [ "main" ]
+    paths:
+      - '01-terraform-infra/envs/dev/**'
+      - '01-terraform-infra/modules/**'
+
+jobs:
+  detect-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      network: ${{ steps.filter.outputs.network }}
+      compute: ${{ steps.filter.outputs.compute }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            network:
+              - '01-terraform-infra/envs/dev/00-network/**'
+              - '01-terraform-infra/modules/vpc/**'
+            compute:
+              - '01-terraform-infra/envs/dev/20-compute/**'
+              - '01-terraform-infra/modules/eks/**'
+
+  deploy-network:
+    needs: detect-changes
+    if: ${{ needs.detect-changes.outputs.network == 'true' }}
+    uses: ./.github/workflows/tf-engine.yml
+    with:
+      working_directory: '01-terraform-infra/envs/dev/00-network'
+    secrets:
+      TF_API_TOKEN: ${{ secrets.TF_API_TOKEN }}
+
+  deploy-compute:
+    needs: [detect-changes, deploy-network]
+    if: ${{ always() && needs.detect-changes.outputs.compute == 'true' }}
+    uses: ./.github/workflows/tf-engine.yml
+    with:
+      working_directory: '01-terraform-infra/envs/dev/20-compute'
+    secrets:
+      TF_API_TOKEN: ${{ secrets.TF_API_TOKEN }}
