@@ -12,7 +12,7 @@ permissions:
   # security-events: write
 
 env:
-  AWS_REGION: us-central-1
+  AWS_REGION: eu-central-1
   ECR_REPOSITORY: test
   # IAM_ROLE_ARN: arn:aws:iam::123456789012:role/GitHubActionRole
 
