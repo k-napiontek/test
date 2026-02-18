@@ -5,6 +5,15 @@ on:
     branches: [ "main", "test" ]
     paths: [ "02-app-source-code/frontend/**" ]
   workflow_dispatch:
+    # Opcjonalnie: Możesz dodać parametry wejściowe (inputs)
+    inputs:
+      logLevel:
+        description: 'Log level'
+        required: false
+        default: 'warning'
+      tags:
+        description: 'Test scenario tags'
+        required: false
 
 permissions:
   id-token: write   
