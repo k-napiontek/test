@@ -16,7 +16,7 @@ function App() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: inputValue }),
       });
-      console.log(response);
+      console.log(response, "test");
       
       if (response.ok) {
         setStatus('Zapisano pomyślnie w bazie!');
