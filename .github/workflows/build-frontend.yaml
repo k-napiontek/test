@@ -2,88 +2,69 @@ name: Frontend Production Pipeline
 
 on:
   push:
-    branches: [ "main", "test" ]
+    branches: [ "main" ]
+    pull_request:
+      branches: [ "main" ]
     paths: [ "02-app-source-code/frontend/**" ]
-  workflow_dispatch:
-    # Opcjonalnie: Możesz dodać parametry wejściowe (inputs)
-    inputs:
-      logLevel:
-        description: 'Log level'
-        required: false
-        default: 'warning'
-      tags:
-        description: 'Test scenario tags'
-        required: false
 
 permissions:
   id-token: write   
   contents: read    
-  # security-events: write
 
 env:
   AWS_REGION: eu-central-1
   ECR_REPOSITORY: test
-  # IAM_ROLE_ARN: arn:aws:iam::123456789012:role/GitHubActionRole
+  IAM_ROLE_ARN: arn:aws:iam::438950223046:role/GitHubActionRole
 
 jobs:
-  # integration:
-  #   name: Quality Gate
-  #   runs-on: ubuntu-latest
-  #   defaults:
-  #     run:
-  #       working-directory: ./02-app-source-code/frontend
+  integration:
+    name: Quality Gate
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./02-app-source-code/frontend
 
-  #   steps:
-  #     - name: Checkout Code
-  #       uses: actions/checkout@v6
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v6
 
-  #     - name: Setup Node.js
-  #       uses: actions/setup-node@v4
-  #       with:
-  #         node-version: '20'
-  #         cache: 'npm'
-  #         cache-dependency-path: frontend/package-lock.json
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          cache: 'npm'
+          cache-dependency-path: 02-app-source-code/frontend/package-lock.json
 
-  #     - name: Install Dependencies
-  #       run: npm ci
+      - name: Install Dependencies
+        run: npm ci
 
-  #     - name: Lint Code
-  #       run: npm run lint
+      - name: Lint Code
+        run: npm run lint
 
-  #     - name: Run Unit Tests
-  #       run: npm test -- --watchAll=false --passWithNoTests
+      - name: Run Unit Tests
+        run: npm test test
 
-  #     # Scans node_modules for vulnerabilities
-  #     - name: Scan Dependencies (Trivy)
-  #       uses: aquasecurity/trivy-action@master
-  #       with:
-  #         scan-type: 'fs'
-  #         scan-ref: './frontend'
-  #         severity: 'CRITICAL,HIGH'
-  #         ignore-unfixed: true
-  #         exit-code: '1' # Fails pipeline if critical bugs found
+      - name: Scan Dependencies (Trivy)
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: './02-app-source-code/frontend'
+          severity: 'CRITICAL,HIGH'
+          ignore-unfixed: true
+          exit-code: '1'
 
-  # JOB 2: BUILD & PUSH (Docker)
   delivery:
     name: Build & Push
-    # needs: integration # Waits for Job 1 to pass
+    needs: integration 
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
         uses: actions/checkout@v6
 
-      # - name: Configure AWS Credentials (OIDC)
-      #   uses: aws-actions/configure-aws-credentials@v4
-      #   with:
-      #     role-to-assume: ${{ env.IAM_ROLE_ARN }}
-      #     aws-region: ${{ env.AWS_REGION }}
-
-
-      - name: Configure AWS Credentials (TEST)
+      - name: Configure AWS Credentials 
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          role-to-assume: ${{ env.IAM_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Login to Amazon ECR
@@ -98,7 +79,6 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: ./02-app-source-code/frontend
-          file: ./02-app-source-code/frontend/Dockerfile
           load: true
           tags: ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
           cache-from: type=gha
@@ -120,7 +100,6 @@ jobs:
         with:
           context: ./02-app-source-code/frontend
           push: true
-          file: ./02-app-source-code/frontend/Dockerfile
           tags: |
             ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
             ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest

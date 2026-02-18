@@ -24,8 +24,9 @@ function App() {
       } else {
         setStatus('Błąd podczas zapisywania.');
       }
-    } catch (error) {
-      setStatus('Brak połączenia z backendem.');
+    } catch  {
+ 
+      setStatus('Brak połączenia z backendem.', );
     }
   };
 
