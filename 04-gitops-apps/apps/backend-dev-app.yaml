@@ -1,12 +1,15 @@
 apiVersion: argocd-image-updater.argoproj.io/v1alpha1
 kind: ImageUpdater
 metadata:
-  name: backend-updater
+  name: my-image-updater
   namespace: argocd
 spec:
+  namespace: argocd  
   applicationRefs:
-    - namePattern: "backend-dev" # This matches your ArgoCD Application name
-      useAnnotations: true       # This tells the controller to read your existing annotations
+    - namePattern: "backend-dev-*"  
+      images:
+        - alias: "backend-dev"
+          imageName: "438950223046.dkr.ecr.eu-central-1.amazonaws.com/dev-myapp-backend:v1.0.2"
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: Application
