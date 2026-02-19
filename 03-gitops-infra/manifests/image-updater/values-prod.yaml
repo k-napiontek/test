@@ -6,7 +6,6 @@ config:
       ping: yes
       insecure: no
       credentials: ext:/scripts/ecr-login.sh
-      credstype: none
 
 serviceAccount:
   create: true
