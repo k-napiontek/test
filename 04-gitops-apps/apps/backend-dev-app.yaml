@@ -4,10 +4,26 @@ metadata:
   name: backend-dev
   namespace: argocd
   annotations:
-    argocd-image-updater.argoproj.io/image-list: myapp=438950223046.dkr.ecr.eu-central-1.amazonaws.com/dev-myapp-backend
+    argocd-image-updater.argoproj.io/image-list: my-backend=438950223046.dkr.ecr.eu-central-1.amazonaws.com/dev-myapp-backend
     argocd-image-updater.argoproj.io/my-backend.update-strategy: semver
     argocd-image-updater.argoproj.io/write-back-method: git
-  
+
 spec:
+  project: default
+
   source:
-    path: 04-gitops-apps/manifests/backend/overlays/dev
+    repoURL: 'https://github.com/k-napiontek/test.git'  
+    targetRevision: HEAD
+    path: 04-gitops-apps/manifests/backend/overlays/dev 
+
+  # 3. Cel (gdzie wdrożyć)
+  destination:
+    server: 'https://kubernetes.default.svc' 
+    namespace: backend-dev
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true 
