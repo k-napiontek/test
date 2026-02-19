@@ -1,0 +1,6 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# This tells Kustomize which files in the base directory to process
+resources:
+  - deployment.yaml
