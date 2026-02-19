@@ -27,7 +27,6 @@ module "ecr" {
     ]
   })
 
-  tags = var.tags
 }
 
 module "iam_policy" {
@@ -75,5 +74,4 @@ module "iam_role" {
     ECRPush = module.iam_policy.arn
   }
 
-  tags = var.tags
 }

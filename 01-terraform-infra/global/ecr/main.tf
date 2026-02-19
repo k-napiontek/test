@@ -1,20 +1,18 @@
-## WSZEDZE
-locals {
-  cluster_name = "${var.env}-${var.cluster_name}"
 
-
-  tags = merge(var.tags, {
-    Environment = var.env
-    Terraform   = "true"
-    Project     = var.project
-  })
-
-}
-module "ecr" {
+module "ecr_backend" {
   source = "../../modules/ecr"
 
-  repository_name = "${var.env}-${var.project}"
+  repository_name = "${var.env}-${var.project}-backend"
   github_repo     = var.github_repo
 
-  tags = local.tags
 }
+
+
+module "ecr_frontend" {
+  source = "../../modules/ecr"
+
+  repository_name = "${var.env}-${var.project}-frontend"
+  github_repo     = var.github_repo
+
+}
+

@@ -8,7 +8,7 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://github.com/k-napiontek/my-app.git
+    repoURL: https://github.com/k-napiontek/test.git
     targetRevision: main
     path: 04-gitops-apps/apps
     directory:

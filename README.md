@@ -4,4 +4,4 @@ Tab – przesuwasz fokus do przycisku Install.
 Enter – zatwierdzasz instalację 
 
 
-> aws eks update-kubeconfig --region=eu-central-1 --name dev-myapp
+> aws eks update-kubeconfig --region=eu-central-1 --name dev-myappte

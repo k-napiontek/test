@@ -1,11 +1,11 @@
 
 module "eks" {
-  source = "../../modules/eks"
+  source = "../../../modules/eks"
 
-  cluster_name       = local.cluster_name
+  cluster_name       = var.cluster_name
   kubernetes_version = var.kubernetes_version
-  vpc_id             = module.vpc.vpc_id
-  subnet_ids         = module.vpc.private_subnets
+  vpc_id             = data.terraform_remote_state.network.outputs.vpc_id
+  subnet_ids         = data.terraform_remote_state.network.outputs.vpc_private_subnets
 
   cluster_endpoint_public_access       = var.cluster_endpoint_public_access
   cluster_endpoint_public_access_cidrs = var.cluster_endpoint_public_access_cidrs
@@ -20,7 +20,6 @@ module "eks" {
     }
   }
 
-  # vpc-cni i coredns muszą być przed node group (before_compute), żeby węzły miały sieć przy starcie
   addons = {
     vpc-cni = {
       before_compute = true
@@ -32,5 +31,5 @@ module "eks" {
     kube-proxy = { most_recent = true }
   }
 
-  tags = local.tags
 }
+
