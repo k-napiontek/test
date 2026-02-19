@@ -23,7 +23,3 @@ authScripts:
       #!/bin/sh
       aws ecr --region eu-central-1 get-authorization-token --output text --query 'authorizationData[].authorizationToken' | base64 -d
 
-extraArgs:
-  - --debug
-  - --argocd-namespace
-  - argocd
