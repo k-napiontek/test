@@ -1,0 +1,25 @@
+config:
+  registries:
+    - name: ECR
+      api_url: https://438950223046.dkr.ecr.eu-central-1.amazonaws.com
+      prefix: 438950223046.dkr.ecr.eu-central-1.amazonaws.com
+      ping: yes
+      insecure: no
+      credentials: ext:/scripts/ecr-login.sh
+      credstype: none
+
+serviceAccount:
+  create: true
+  name: "argocd-image-updater"
+  annotations:
+    # Ważne: to musi pasować do roli utworzonej w Terraform
+    # Ale uwaga: w EKS Pod Identity (którego używasz) adnotacja nie jest wymagana,
+    # asocjacja dzieje się po stronie AWS EKS API.
+    # Jednak upewnij się, że nazwa SA to "argocd-image-updater".
+
+authScripts:
+  enabled: true
+  scripts:
+    ecr-login.sh: |
+      #!/bin/sh
+      aws ecr --region eu-central-1 get-authorization-token --output text --query 'authorizationData[].authorizationToken' | base64 -d
