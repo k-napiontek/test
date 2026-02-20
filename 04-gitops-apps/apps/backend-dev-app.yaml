@@ -9,10 +9,16 @@ spec:
     - namePattern: "backend-dev"  
       images:
         - alias: "backend-dev"
-          imageName: "438950223046.dkr.ecr.eu-central-1.amazonaws.com/dev-myapp-backend:v1.0.2"
+          imageName: "438950223046.dkr.ecr.eu-central-1.amazonaws.com/dev-myapp-backend"
                     
       commonUpdateSettings:
         updateStrategy: "semver"
+
+  writeBack:
+    method: "git"
+    gitBranch: "main"
+    # Tell ArgoCD which secret contains your GitHub authentication
+    gitCredentials: "secret:argocd/github-creds#credentials"
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: Application

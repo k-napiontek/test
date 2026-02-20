@@ -27,22 +27,22 @@ module "argocd_image_updater_pod_identity" {
 
 
 
-resource "aws_secretsmanager_secret" "argocd_git_creds" {
-  name        = "dev/argocd/git-credentials"
-  description = "GitHub/GitLab credentials for ArgoCD"
-}
+# resource "aws_secretsmanager_secret" "argocd_git_creds" {
+#   name        = "dev/argocd/git-credentials"
+#   description = "GitHub/GitLab credentials for ArgoCD"
+# }
 
-resource "aws_secretsmanager_secret_version" "argocd_git_creds_val" {
-  secret_id     = aws_secretsmanager_secret.argocd_git_creds.id
-  secret_string = jsonencode({
-    username = "git-user"
-    password = "CHANGE_ME"
-  })
+# resource "aws_secretsmanager_secret_version" "argocd_git_creds_val" {
+#   secret_id     = aws_secretsmanager_secret.argocd_git_creds.id
+#   secret_string = jsonencode({
+#     username = "k-napiontek"
+#     password = "CHANGE_ME"
+#   })
   
-  lifecycle {
-    ignore_changes = [secret_string]
-  }
-}
+#   lifecycle {
+#     ignore_changes = [secret_string]
+#   }
+# }
 
 
 resource "helm_release" "argocd" {
