@@ -7,7 +7,7 @@ config:
       prefix: 438950223046.dkr.ecr.eu-central-1.amazonaws.com
       ping: yes
       insecure: no
-      credentials: argocd/ecr-pull-secret
+      credentials: pullsecret:argocd/ecr-pull-secret
       # REMOVED: credentials: ext:/scripts/ecr-login.sh (Let the CRD handle it via the Secret)
 
 serviceAccount:
