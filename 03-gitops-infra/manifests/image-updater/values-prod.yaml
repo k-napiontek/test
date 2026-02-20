@@ -1,0 +1,16 @@
+# 03-gitops-infra/manifests/image-updater/values-prod.yaml
+
+config:
+  registries:
+    - name: ECR
+      api_url: https://438950223046.dkr.ecr.eu-central-1.amazonaws.com
+      prefix: 438950223046.dkr.ecr.eu-central-1.amazonaws.com
+      ping: yes
+      insecure: no
+      # REMOVED: credentials: ext:/scripts/ecr-login.sh (Let the CRD handle it via the Secret)
+
+serviceAccount:
+  create: true
+  name: "argocd-image-updater"
+
+# REMOVED: authScripts block entirely. We do not need scripts because the CronJob handles it.
