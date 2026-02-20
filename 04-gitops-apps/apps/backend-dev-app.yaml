@@ -10,13 +10,16 @@ spec:
       images:
         - alias: "backend-dev"
           imageName: "438950223046.dkr.ecr.eu-central-1.amazonaws.com/dev-myapp-backend"
-                    
+          
       commonUpdateSettings:
         updateStrategy: "semver"
-        writeBack:
-          method: "git"
-          gitBranch: "main"
-          gitCredentials: "secret:argocd/github-creds#credentials"
+        
+      # CORRECTED SCHEMA: writeBackConfig belongs at the applicationRef level
+      writeBackConfig:
+        # The method defines both that we are using Git AND which secret holds the token
+        method: "git:secret:argocd/github-creds"
+        gitConfig:
+          branch: "main"
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: Application

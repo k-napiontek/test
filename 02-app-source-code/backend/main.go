@@ -59,7 +59,7 @@ func main() {
 
 	mux.HandleFunc("/api/data", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
-			http.Error(w, "Metoda niedozwolona test", http.StatusMethodNotAllowed)
+			http.Error(w, "Metoda niedozwolona ffftest", http.StatusMethodNotAllowed)
 			return
 		}
 
