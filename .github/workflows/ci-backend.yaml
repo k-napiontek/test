@@ -1,3 +1,81 @@
+# name: CI Backend
+
+# on:
+#   push:
+#     branches:
+#       - main
+#     tags:
+#       - 'v*'
+#   pull_request:
+#     types: [opened, synchronize, reopened]
+  
+#   workflow_dispatch:
+
+# permissions:
+#   id-token: write   
+#   contents: read 
+
+# env:
+#   AWS_REGION: eu-central-1
+#   ECR_REPOSITORY: dev-myapp-backend
+#   IAM_ROLE_ARN: arn:aws:iam::438950223046:role/GitHubActionRole
+
+# jobs:
+#   lint:
+#     runs-on: ubuntu-latest
+#     steps:
+#       - name: Checkout code
+#         uses: actions/checkout@v6
+#       - name: Setup Go
+#         uses: actions/setup-go@v6
+#         with:
+#           go-version: '1.25.6'
+#       - name: Run golangci-lint
+#         uses: golangci/golangci-lint-action@v9
+#         with:
+#           working-directory: ./02-app-source-code/backend
+#       - name: Install and Run Gosec
+#         working-directory: ./02-app-source-code/backend
+#         run: |
+#           # Install the latest gosec binary directly to the runner
+#           curl -sfL https://raw.githubusercontent.com/securego/gosec/master/install.sh | sh -s -- -b $(go env GOPATH)/bin
+          
+#           # Execute gosec inside the correct directory context
+#           gosec ./02-app-source-code/backend
+
+#       - name: Run Govulncheck (Dependency vulnerabilities)
+#         uses: golang/govulncheck-action@v1
+#         with:
+#           work-dir: ./02-app-source-code/backend
+
+#   push:
+#     runs-on: ubuntu-latest
+#     steps:
+#       - name: Checkout code
+#         uses: actions/checkout@v6
+#       - name: Configure AWS credentials
+#         uses: aws-actions/configure-aws-credentials@v4
+#         with:
+#           role-to-assume: ${{ env.IAM_ROLE_ARN }}
+#           aws-region: ${{ env.AWS_REGION }}
+#           # aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+#           # aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+#           # aws-region: eu-central-1
+
+#       - name: Login to Amazon ECR
+#         id: login-ecr
+#         uses: aws-actions/amazon-ecr-login@v2
+
+#       - name: Build, tag, and push image to Amazon ECR
+#         env:
+#           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+#           ECR_REPOSITORY: dev-myapp-backend # Replace with your actual ECR repository name
+#           IMAGE_TAG: ${{ github.ref_name }} # Dynamically evaluates to 'v0.0.1'
+#         run: |
+#           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG ./02-app-source-code/backend
+#           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+
+
 name: CI Backend
 
 on:
@@ -8,12 +86,12 @@ on:
       - 'v*'
   pull_request:
     types: [opened, synchronize, reopened]
-  
   workflow_dispatch:
 
 permissions:
-  id-token: write   
-  contents: read 
+  id-token: write        # Required for AWS OIDC authentication
+  contents: write        # Required for repo operations
+  pull-requests: write   # Required for Release Please to manage Release PRs
 
 env:
   AWS_REGION: eu-central-1
@@ -21,46 +99,70 @@ env:
   IAM_ROLE_ARN: arn:aws:iam::438950223046:role/GitHubActionRole
 
 jobs:
+  # ---------------------------------------------------------
+  # JOB 1: Code Quality (Runs on PRs, Main, and Tags)
+  # ---------------------------------------------------------
   lint:
+    name: Lint and Security Checks
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
+
       - name: Setup Go
         uses: actions/setup-go@v6
         with:
           go-version: '1.25.6'
+
       - name: Run golangci-lint
         uses: golangci/golangci-lint-action@v9
         with:
           working-directory: ./02-app-source-code/backend
+
       - name: Install and Run Gosec
         working-directory: ./02-app-source-code/backend
         run: |
-          # Install the latest gosec binary directly to the runner
           curl -sfL https://raw.githubusercontent.com/securego/gosec/master/install.sh | sh -s -- -b $(go env GOPATH)/bin
-          
-          # Execute gosec inside the correct directory context
-          gosec ./02-app-source-code/backend
+          gosec ./...
 
-      - name: Run Govulncheck (Dependency vulnerabilities)
+      - name: Run Govulncheck
         uses: golang/govulncheck-action@v1
         with:
           work-dir: ./02-app-source-code/backend
 
+  # ---------------------------------------------------------
+  # JOB 2: Automated Release (Runs ONLY on merges to Main)
+  # ---------------------------------------------------------
+  release-please:
+    name: Automated Versioning
+    needs: lint
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run Release Please
+        uses: googleapis/release-please-action@v4
+        with:
+          # CRITICAL: Use a PAT so the resulting tag triggers the 'push' job below
+          token: ${{ secrets.PAT_TOKEN }}
+          release-type: go
+
+  # ---------------------------------------------------------
+  # JOB 3: Build & Push (Runs ONLY when a new Tag is created)
+  # ---------------------------------------------------------
   push:
+    name: Build and Push to ECR
+    needs: lint
+    if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ env.IAM_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
-          # aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          # aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          # aws-region: eu-central-1
 
       - name: Login to Amazon ECR
         id: login-ecr
@@ -69,8 +171,7 @@ jobs:
       - name: Build, tag, and push image to Amazon ECR
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          ECR_REPOSITORY: dev-myapp-backend # Replace with your actual ECR repository name
-          IMAGE_TAG: ${{ github.ref_name }} # Dynamically evaluates to 'v0.0.1'
+          IMAGE_TAG: ${{ github.ref_name }} # Reliably evaluates to the exact Git tag (e.g., 'v1.2.0')
         run: |
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG ./02-app-source-code/backend
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          docker build -t $ECR_REGISTRY/${{ env.ECR_REPOSITORY }}:$IMAGE_TAG ./02-app-source-code/backend
+          docker push $ECR_REGISTRY/${{ env.ECR_REPOSITORY }}:$IMAGE_TAG
