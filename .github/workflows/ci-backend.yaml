@@ -1,0 +1,29 @@
+name: CI Backend
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+
+jobs:
+  runs-on: ubuntu-latest
+  steps:
+    - name: Checkout code
+      uses: actions/checkout@v6
+    - name: Setup Go
+      uses: actions/setup-go@v6
+      with:
+        go-version: '1.23'
+    - name: Run golangci-lint
+      uses: golangci/golangci-lint-action@v3
+      with:
+        working-directory: ./02-app-source-code/backend
+    - name: Run Gosec Security Scanner
+      uses: securego/gosec@master
+      with:
+        args: ./02-app-source-code/backend
+
+    - name: Run Govulncheck (Dependency vulnerabilities)
+      uses: golang/govulncheck-action@v1
+      with:
+        work-dir: ./02-app-source-code/backend
