@@ -6,24 +6,55 @@ on:
 
 
 jobs:
-  runs-on: ubuntu-latest
-  steps:
-    - name: Checkout code
-      uses: actions/checkout@v6
-    - name: Setup Go
-      uses: actions/setup-go@v6
-      with:
-        go-version: '1.23'
-    - name: Run golangci-lint
-      uses: golangci/golangci-lint-action@v3
-      with:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+      - name: Setup Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: '1.25.6'
+      - name: Run golangci-lint
+        uses: golangci/golangci-lint-action@v9
+        with:
+          working-directory: ./02-app-source-code/backend
+      - name: Install and Run Gosec
         working-directory: ./02-app-source-code/backend
-    - name: Run Gosec Security Scanner
-      uses: securego/gosec@master
-      with:
-        args: ./02-app-source-code/backend
+        run: |
+          # Install the latest gosec binary directly to the runner
+          curl -sfL https://raw.githubusercontent.com/securego/gosec/master/install.sh | sh -s -- -b $(go env GOPATH)/bin
+          
+          # Execute gosec inside the correct directory context
+          gosec ./02-app-source-code/backend
 
-    - name: Run Govulncheck (Dependency vulnerabilities)
-      uses: golang/govulncheck-action@v1
-      with:
-        work-dir: ./02-app-source-code/backend
+      - name: Run Govulncheck (Dependency vulnerabilities)
+        uses: golang/govulncheck-action@v1
+        with:
+          work-dir: ./02-app-source-code/backend
+
+  push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: eu-central-1
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Build, tag, and push image to Amazon ECR
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: dev-myapp-backend # Replace with your actual ECR repository name
+          IMAGE_TAG: ${{ github.ref_name }} # Dynamically evaluates to 'v0.0.1'
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG ./02-app-source-code/backend
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+
