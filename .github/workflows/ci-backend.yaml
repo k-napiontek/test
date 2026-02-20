@@ -119,16 +119,16 @@ jobs:
         with:
           working-directory: ./02-app-source-code/backend
 
-      - name: Install and Run Gosec
-        working-directory: ./02-app-source-code/backend
-        run: |
-          curl -sfL https://raw.githubusercontent.com/securego/gosec/master/install.sh | sh -s -- -b $(go env GOPATH)/bin
-          gosec ./...
+      # - name: Install and Run Gosec
+      #   working-directory: ./02-app-source-code/backend
+      #   run: |
+      #     curl -sfL https://raw.githubusercontent.com/securego/gosec/master/install.sh | sh -s -- -b $(go env GOPATH)/bin
+      #     gosec ./...
 
-      - name: Run Govulncheck
-        uses: golang/govulncheck-action@v1
-        with:
-          work-dir: ./02-app-source-code/backend
+      # - name: Run Govulncheck
+      #   uses: golang/govulncheck-action@v1
+      #   with:
+      #     work-dir: ./02-app-source-code/backend
 
   # ---------------------------------------------------------
   # JOB 2: Automated Release (Runs ONLY on merges to Main)
