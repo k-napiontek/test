@@ -72,7 +72,7 @@ func main() {
 		// Zapis do PostgreSQL
 		_, err := db.Exec("INSERT INTO messages (content) VALUES ($1)", payload.Message)
 		if err != nil {
-			http.Error(w, "Błąd zapisu do bazy", http.StatusInternalServerError)
+			http.Error(w, "Błąd zapisu do bazy, dodanie metrik", http.StatusInternalServerError)
 			return
 		}
 
