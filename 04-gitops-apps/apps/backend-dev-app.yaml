@@ -13,12 +13,10 @@ spec:
                     
       commonUpdateSettings:
         updateStrategy: "semver"
-
-  writeBack:
-    method: "git"
-    gitBranch: "main"
-    # Tell ArgoCD which secret contains your GitHub authentication
-    gitCredentials: "secret:argocd/github-creds#credentials"
+        writeBack:
+          method: "git"
+          gitBranch: "main"
+          gitCredentials: "secret:argocd/github-creds#credentials"
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: Application
