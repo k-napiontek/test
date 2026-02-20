@@ -3,7 +3,7 @@ package main
 import (
 	"log"
 	"net/http"
-
+	"time"
 	"my-app/handlers"
 	"my-app/middleware"
 
@@ -46,7 +46,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("Błąd połączenia z bazą: %v", err)
 	}
-
+	log.Println("Working....d, diajdijsa idjaijdsdjsaid")
 	mux := http.NewServeMux()
 	log.Println("Working....d")
 	// Metrics middleware - liczy requesty, latency, status codes
@@ -77,9 +77,21 @@ func main() {
 		}
 
 		w.WriteHeader(http.StatusCreated)
-		fmt.Fprintf(w, `{"status":"success"}`)
+		_, _ = fmt.Fprintf(w, `{"status":"success"}`)
 	})
 
-	log.Println("Server starting on :8080")
-	log.Fatal(http.ListenAndServe(":8080", enableCORS(mux)))
+	srv := &http.Server{
+        Addr:         ":8080",
+        Handler:      enableCORS(mux),
+        ReadTimeout:  5 * time.Second,   // Max time to read the entire request, including body
+        WriteTimeout: 10 * time.Second,  // Max time to write the response
+        IdleTimeout:  120 * time.Second, // Max time to wait for the next request when keep-alives are enabled
+        ReadHeaderTimeout: 3 * time.Second, // Crucial for mitigating Slowloris attacks
+    }
+
+    log.Println("Server starting on :8080")
+    // Use the custom server instance instead of the default convenience function
+    if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+        log.Fatalf("Server failed to start: %v", err)
+    }
 }
