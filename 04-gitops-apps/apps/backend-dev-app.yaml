@@ -10,17 +10,17 @@ spec:
       images:
         - alias: "backend-dev"
           imageName: "438950223046.dkr.ecr.eu-central-1.amazonaws.com/dev-myapp-backend:v1.0.2"
+          
+          pullSecret: "pullsecret:argocd/ecr-pull-secret"
+          
+      commonUpdateSettings:
+        updateStrategy: "semver"
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
   name: backend-dev
   namespace: argocd
-  annotations:
-    argocd-image-updater.argoproj.io/image-list: my-backend=438950223046.dkr.ecr.eu-central-1.amazonaws.com/dev-myapp-backend
-    argocd-image-updater.argoproj.io/my-backend.update-strategy: semver
-    argocd-image-updater.argoproj.io/write-back-method: git
-    argocd-image-updater.argoproj.io/git-branch: main
 spec:
   project: default
 

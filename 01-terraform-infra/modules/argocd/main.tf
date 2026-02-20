@@ -16,6 +16,11 @@ module "argocd_image_updater_pod_identity" {
       cluster_name    = var.eks_cluster_name # Pass this from your compute layer
       namespace       = "argocd"
       service_account = "argocd-image-updater"
+    },
+    cronjob = {
+      cluster_name    = var.eks_cluster_name
+      namespace       = "argocd"
+      service_account = "ecr-token-refresher" 
     }
   }
 }
