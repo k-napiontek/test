@@ -4,7 +4,7 @@
 | Commit | Description |
 |--------|-------------|
 {{#each commits}}
-| `{{shortHash}}` | {{#if scope}}**{{scope}}:** {{/if}}{{subject}} |
+| [`{{shortHash}}`](https://github.com/{{owner}}/{{repository}}/commit/{{hash}}) | {{#if scope}}`{{scope}}`{{else}}-{{/if}} | {{subject}} |
 {{/each}}
 
 {{/each}}
