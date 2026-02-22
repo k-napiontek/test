@@ -6,8 +6,8 @@ on:
   push:
     branches: [ "main" ]
   workflow_dispatch:
-  paths:
-    - '01-terraform-infra/**'
+  # paths:
+  #   - '01-terraform-infra/**'
 
 jobs:
   filter:
