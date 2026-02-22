@@ -1,11 +1,16 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
-namespace: backend-dev
+namespace: backend-stg
 
 resources:
   - ../../base
 
+replicas:
+  - name: backend
+    count: 2
+
 images:
   - name: 438950223046.dkr.ecr.eu-central-1.amazonaws.com/dev-myapp-backend
-    newTag: v1.0.4
+    newName: 438950223046.dkr.ecr.eu-central-1.amazonaws.com/stg-myapp-backend
+    newTag: v0.0.0

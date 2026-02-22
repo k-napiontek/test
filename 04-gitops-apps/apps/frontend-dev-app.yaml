@@ -1,0 +1,44 @@
+apiVersion: argocd-image-updater.argoproj.io/v1alpha1
+kind: ImageUpdater
+metadata:
+  name: frontend-image-updater
+  namespace: argocd
+spec:
+  namespace: argocd
+  applicationRefs:
+    - namePattern: "frontend-dev"
+      images:
+        - alias: "frontend-dev"
+          imageName: "438950223046.dkr.ecr.eu-central-1.amazonaws.com/dev-myapp-frontend"
+
+      commonUpdateSettings:
+        updateStrategy: "semver"
+
+      writeBackConfig:
+        method: "git:secret:argocd/github-creds"
+        gitConfig:
+          branch: "main"
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: frontend-dev
+  namespace: argocd
+spec:
+  project: default
+
+  source:
+    repoURL: 'https://github.com/k-napiontek/test.git'
+    targetRevision: HEAD
+    path: 04-gitops-apps/manifests/frontend/overlays/dev
+
+  destination:
+    server: 'https://kubernetes.default.svc'
+    namespace: frontend-dev
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

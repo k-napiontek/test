@@ -1,0 +1,90 @@
+name: Promote Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version tag to promote (e.g., v1.2.3)'
+        required: true
+      target_env:
+        description: 'Target environment'
+        required: true
+        type: choice
+        options: [stg, prod]
+      services:
+        description: 'Services to promote'
+        required: true
+        type: choice
+        options: [all, backend, frontend]
+        default: all
+
+permissions:
+  id-token: write
+  contents: write
+
+env:
+  AWS_REGION: eu-central-1
+  AWS_ACCOUNT_ID: '438950223046'
+
+jobs:
+  promote:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.target_env }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ env.AWS_ACCOUNT_ID }}:role/GitHubActionRole
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Install crane
+        uses: imjasonh/setup-crane@v0.4
+
+      - name: Determine services to promote
+        id: services
+        run: |
+          if [ "${{ inputs.services }}" = "all" ]; then
+            echo "list=backend frontend" >> "$GITHUB_OUTPUT"
+          else
+            echo "list=${{ inputs.services }}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Copy images to target ECR
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        run: |
+          for svc in ${{ steps.services.outputs.list }}; do
+            SOURCE="${ECR_REGISTRY}/dev-myapp-${svc}:${{ inputs.version }}"
+            TARGET="${ECR_REGISTRY}/${{ inputs.target_env }}-myapp-${svc}:${{ inputs.version }}"
+            echo "Copying ${SOURCE} → ${TARGET}"
+            crane copy "${SOURCE}" "${TARGET}"
+          done
+
+      - name: Update Kustomize overlays
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        run: |
+          for svc in ${{ steps.services.outputs.list }}; do
+            OVERLAY="04-gitops-apps/manifests/${svc}/overlays/${{ inputs.target_env }}/kustomization.yaml"
+            IMAGE="${ECR_REGISTRY}/${{ inputs.target_env }}-myapp-${svc}:${{ inputs.version }}"
+            echo "Updating ${OVERLAY} → ${IMAGE}"
+            cd "04-gitops-apps/manifests/${svc}/overlays/${{ inputs.target_env }}"
+            kustomize edit set image "*-myapp-${svc}=${IMAGE}"
+            cd "${GITHUB_WORKSPACE}"
+          done
+
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add 04-gitops-apps/
+          git diff --staged --quiet && echo "No changes to commit" && exit 0
+          git commit -m "promote: ${{ inputs.version }} → ${{ inputs.target_env }} [${{ inputs.services }}]"
+          git push
