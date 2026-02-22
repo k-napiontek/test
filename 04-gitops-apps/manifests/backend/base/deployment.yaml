@@ -1,23 +1,22 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: backend-dev
-  namespace: backend-dev
+  name: backend
   labels:
     app: backend
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: myapp
+      app: backend
   template:
     metadata:
       labels:
-        app: myapp
+        app: backend
     spec:
       containers:
-        - name: myapp
-          image: 438950223046.dkr.ecr.eu-central-1.amazonaws.com/dev-myapp-backend:v1.0.2
+        - name: backend
+          image: 438950223046.dkr.ecr.eu-central-1.amazonaws.com/dev-myapp-backend:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 8080

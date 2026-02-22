@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: backend-prod
+  name: frontend-stg
   namespace: argocd
 spec:
   project: default
@@ -9,12 +9,12 @@ spec:
   source:
     repoURL: 'https://github.com/k-napiontek/test.git'
     targetRevision: HEAD
-    path: 04-gitops-apps/manifests/backend/overlays/prod
+    path: 04-gitops-apps/manifests/frontend/overlays/stg
 
   destination:
-    # TODO: Update to prod cluster URL after provisioning
+    # TODO: Update to stg cluster URL after provisioning
     server: 'https://kubernetes.default.svc'
-    namespace: backend-prod
+    namespace: frontend-stg
 
   syncPolicy:
     automated:
