@@ -44,6 +44,3 @@ variable "cluster_name" {
   type = string
 }
 
-variable "test" {
-  
-}

@@ -8,3 +8,7 @@ data "terraform_remote_state" "network" {
       }
     }
 }
+
+data "aws_iam_role" "github_actions_role" {
+  name = "GitHubActionRole"
+}
