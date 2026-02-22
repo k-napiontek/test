@@ -1,0 +1,3 @@
+kustomize:
+  images:
+  - 438950223046.dkr.ecr.eu-central-1.amazonaws.com/dev-myapp-frontend:v1.4.4
