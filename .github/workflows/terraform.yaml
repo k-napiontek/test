@@ -19,18 +19,19 @@ jobs:
         environment: [dev, stg, prod]
         layer: ["00-network", "20-compute"] # Dodana matryca warstw
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        # Dynamiczna ścieżka do konkretnego workspace'u
-        working-directory: ./01-terraform-infra/envs/${{ matrix.environment }}/${{ matrix.layer }}
+    
+    # USUNIĘTO: defaults: run: working-directory
+    # Zostajemy w roocie repozytorium, aby HCP widział folder modules/
+    
     steps:
       - uses: actions/checkout@v4
       - uses: hashicorp/setup-terraform@v3
         with:
           cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
       
-      - run: terraform init
-      - run: terraform plan -no-color
+      # Zastosowanie flagi -chdir dla matrycy
+      - run: terraform -chdir=01-terraform-infra/envs/${{ matrix.environment }}/${{ matrix.layer }} init
+      - run: terraform -chdir=01-terraform-infra/envs/${{ matrix.environment }}/${{ matrix.layer }} plan -no-color
 
   # ==========================================
   # 2. APPLY DEV: Sekwencyjne wdrażanie warstw (Network -> Compute)
@@ -47,18 +48,16 @@ jobs:
 
       # --- WARSTWA 1: NETWORK ---
       - name: Init & Apply Network
-        working-directory: ./01-terraform-infra/envs/dev/00-network
         run: |
-          terraform init
-          terraform apply -auto-approve
+          terraform -chdir=01-terraform-infra/envs/dev/00-network init
+          terraform -chdir=01-terraform-infra/envs/dev/00-network apply -auto-approve
 
       # --- WARSTWA 2: COMPUTE ---
       # Uruchomi się dopiero, gdy Network skończy się sukcesem
       - name: Init & Apply Compute
-        working-directory: ./01-terraform-infra/envs/dev/20-compute
         run: |
-          terraform init
-          terraform apply -auto-approve
+          terraform -chdir=01-terraform-infra/envs/dev/20-compute init
+          terraform -chdir=01-terraform-infra/envs/dev/20-compute apply -auto-approve
 
   # ==========================================
   # 3. APPLY STG: Czeka na DEV (Bramka akceptacji) + Sekwencja warstw
@@ -75,16 +74,14 @@ jobs:
           cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
 
       - name: Init & Apply Network
-        working-directory: ./01-terraform-infra/envs/stg/00-network
         run: |
-          terraform init
-          terraform apply -auto-approve
+          terraform -chdir=01-terraform-infra/envs/stg/00-network init
+          terraform -chdir=01-terraform-infra/envs/stg/00-network apply -auto-approve
 
       - name: Init & Apply Compute
-        working-directory: ./01-terraform-infra/envs/stg/20-compute
         run: |
-          terraform init
-          terraform apply -auto-approve
+          terraform -chdir=01-terraform-infra/envs/stg/20-compute init
+          terraform -chdir=01-terraform-infra/envs/stg/20-compute apply -auto-approve
 
   # ==========================================
   # 4. APPLY PROD: Czeka na STG (Bramka akceptacji) + Sekwencja warstw
@@ -101,13 +98,11 @@ jobs:
           cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
 
       - name: Init & Apply Network
-        working-directory: ./01-terraform-infra/envs/prod/00-network
         run: |
-          terraform init
-          terraform apply -auto-approve
+          terraform -chdir=01-terraform-infra/envs/prod/00-network init
+          terraform -chdir=01-terraform-infra/envs/prod/00-network apply -auto-approve
 
       - name: Init & Apply Compute
-        working-directory: ./01-terraform-infra/envs/prod/20-compute
         run: |
-          terraform init
-          terraform apply -auto-approve
+          terraform -chdir=01-terraform-infra/envs/prod/20-compute init
+          terraform -chdir=01-terraform-infra/envs/prod/20-compute apply -auto-approve
