@@ -1,0 +1,61 @@
+name: "Drift Detection"
+
+on:
+  schedule:
+    - cron: '0 4 * * *'
+  workflow_dispatch: 
+
+permissions:
+  contents: read
+  issues: write 
+
+jobs:
+  drift-patrol:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        workspace: 
+          - dev/00-network
+          - dev/20-compute
+          - stg/00-network
+          - stg/20-compute
+          - prod/00-network
+          - prod/20-compute
+
+    env:
+      TF_WORKDIR: 01-terraform-infra/envs/${{ matrix.workspace }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
+
+      - name: Terraform Init
+        run: terraform -chdir=${{ env.TF_WORKDIR }} init
+
+      - name: Terraform Plan (Drift Check)
+        id: drift_check
+        run: terraform -chdir=${{ env.TF_WORKDIR }} plan -detailed-exitcode -no-color
+        continue-on-error: true
+
+      - name: Create GitHub Issue on Drift
+        if: steps.drift_check.outcome == 'failure'
+        uses: actions/github-script@v7
+        env:
+          WORKSPACE: ${{ matrix.workspace }}
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `🚨 Drift Wykryty: ${process.env.WORKSPACE}`,
+              body: `### Nocny Patrol Terraform wykrył nieautoryzowane zmiany! \n\n**Środowisko i warstwa:** \`${process.env.WORKSPACE}\` \n\nKtoś zmodyfikował infrastrukturę bezpośrednio w konsoli AWS (poza GitHub Actions). \n\nProszę sprawdzić logi z zakładki Actions i zdecydować, czy przywracamy stan z kodu (\`terraform apply\`), czy aktualizujemy kod, aby dogonić rzeczywistość.`
+            })
+            
+      - name: Fail the Job if drift exists
+        if: steps.drift_check.outcome == 'failure'
+        run: exit 1

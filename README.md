@@ -9,3 +9,6 @@ Enter – zatwierdzasz instalację
 
 1. Ustaw, zeby nie było mozna pushować na maina.
 2. 
+
+
+
