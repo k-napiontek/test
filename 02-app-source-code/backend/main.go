@@ -16,7 +16,7 @@ import (
 	_ "github.com/lib/pq"
 )
 var db *sql.DB
-
+// 444
 // Struktura danych odbierana od Reacta
 type DataPayload struct {
 	Message string `json:"message"`
