@@ -3,11 +3,12 @@ name: "Terraform CI/CD"
 on:
   pull_request:
     branches: [ "main" ]
+    paths:
+      - '01-terraform-infra/**'
   push:
     branches: [ "main" ]
-  workflow_dispatch:
-  # paths:
-  #   - '01-terraform-infra/**'
+    paths:
+      - '01-terraform-infra/**'
 
 permissions:
   contents: read
@@ -78,73 +79,73 @@ jobs:
         run: exit 1
 
 
-  # terraform-apply-dev:
-  #   if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-  #   runs-on: ubuntu-latest
-  #   environment: dev
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #     - uses: hashicorp/setup-terraform@v3
-  #       with:
-  #         cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
+  terraform-apply-dev:
+    needs: filter
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: dev
+    steps:
+      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # 6.0.0
+      - uses: hashicorp/setup-terraform@97f030cf6dc0b4f5e0da352c7bca9cca34579800 # 3.1.0
+        with:
+          cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
 
-  #     # --- WARSTWA 1: NETWORK ---
-  #     - name: Init & Apply Network
-  #       run: |
-  #         terraform -chdir=01-terraform-infra/envs/dev/00-network init
-  #         terraform -chdir=01-terraform-infra/envs/dev/00-network apply -auto-approve
+      - name: Init & Apply Network
+        if: contains(needs.filter.outputs.workspaces, 'dev/00-network')
+        run: |
+          terraform -chdir=01-terraform-infra/envs/dev/00-network init
+          terraform -chdir=01-terraform-infra/envs/dev/00-network apply -auto-approve
 
-  #     # --- WARSTWA 2: COMPUTE ---
-  #     # Uruchomi się dopiero, gdy Network skończy się sukcesem
-  #     - name: Init & Apply Compute
-  #       run: |
-  #         terraform -chdir=01-terraform-infra/envs/dev/20-compute init
-  #         terraform -chdir=01-terraform-infra/envs/dev/20-compute apply -auto-approve
+      - name: Init & Apply Compute
+        if: contains(needs.filter.outputs.workspaces, 'dev/20-compute')
+        run: |
+          terraform -chdir=01-terraform-infra/envs/dev/20-compute init
+          terraform -chdir=01-terraform-infra/envs/dev/20-compute apply -auto-approve
 
-  # # ==========================================
-  # # 3. APPLY STG: Czeka na DEV (Bramka akceptacji) + Sekwencja warstw
-  # # ==========================================
-  # terraform-apply-stg:
-  #   needs: terraform-apply-dev
-  #   if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-  #   runs-on: ubuntu-latest
-  #   environment: stg
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #     - uses: hashicorp/setup-terraform@v3
-  #       with:
-  #         cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
 
-  #     - name: Init & Apply Network
-  #       run: |
-  #         terraform -chdir=01-terraform-infra/envs/stg/00-network init
-  #         terraform -chdir=01-terraform-infra/envs/stg/00-network apply -auto-approve
+  terraform-apply-stg:
+    needs: [filter, terraform-apply-dev]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: stg
+    steps:  
+      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # 6.0.0
+      - uses: hashicorp/setup-terraform@97f030cf6dc0b4f5e0da352c7bca9cca34579800 # 3.1.0
+        with:
+          cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
 
-  #     - name: Init & Apply Compute
-  #       run: |
-  #         terraform -chdir=01-terraform-infra/envs/stg/20-compute init
-  #         terraform -chdir=01-terraform-infra/envs/stg/20-compute apply -auto-approve
+      - name: Init & Apply Network
+        if: contains(needs.filter.outputs.workspaces, 'stg/00-network')
+        run: |
+          terraform -chdir=01-terraform-infra/envs/stg/00-network init
+          terraform -chdir=01-terraform-infra/envs/stg/00-network apply -auto-approve
 
-  # # ==========================================
-  # # 4. APPLY PROD: Czeka na STG (Bramka akceptacji) + Sekwencja warstw
-  # # ==========================================
-  # terraform-apply-prod:
-  #   needs: terraform-apply-stg
-  #   if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-  #   runs-on: ubuntu-latest
-  #   environment: prod
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #     - uses: hashicorp/setup-terraform@v3
-  #       with:
-  #         cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
+      - name: Init & Apply Compute
+        if: contains(needs.filter.outputs.workspaces, 'stg/20-compute')
+        run: |
+          terraform -chdir=01-terraform-infra/envs/stg/20-compute init
+          terraform -chdir=01-terraform-infra/envs/stg/20-compute apply -auto-approve
 
-  #     - name: Init & Apply Network
-  #       run: |
-  #         terraform -chdir=01-terraform-infra/envs/prod/00-network init
-  #         terraform -chdir=01-terraform-infra/envs/prod/00-network apply -auto-approve
 
-  #     - name: Init & Apply Compute
-  #       run: |
-  #         terraform -chdir=01-terraform-infra/envs/prod/20-compute init
-  #         terraform -chdir=01-terraform-infra/envs/prod/20-compute apply -auto-approve
+  terraform-apply-prod:
+    needs: [filter, terraform-apply-stg]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: prod
+    steps:
+      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # 6.0.0
+      - uses: hashicorp/setup-terraform@97f030cf6dc0b4f5e0da352c7bca9cca34579800 # 3.1.0
+        with:
+          cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
+
+      - name: Init & Apply Network
+        if: contains(needs.filter.outputs.workspaces, 'prod/00-network')
+        run: |
+          terraform -chdir=01-terraform-infra/envs/prod/00-network init
+          terraform -chdir=01-terraform-infra/envs/prod/00-network apply -auto-approve
+
+      - name: Init & Apply Compute
+        if: contains(needs.filter.outputs.workspaces, 'prod/20-compute')
+        run: |
+          terraform -chdir=01-terraform-infra/envs/prod/20-compute init
+          terraform -chdir=01-terraform-infra/envs/prod/20-compute apply -auto-approve

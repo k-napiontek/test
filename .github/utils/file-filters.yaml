@@ -1,9 +1,11 @@
 dev/00-network:
 - '01-terraform-infra/envs/dev/00-network/**'
 - '01-terraform-infra/modules/**'
-
 dev/20-compute:
 - '01-terraform-infra/envs/dev/20-compute/**'
+- '01-terraform-infra/modules/**'
+dev/30-bootstrap:
+- '01-terraform-infra/envs/dev/30-bootstrap/**'
 - '01-terraform-infra/modules/**'
 
 
@@ -13,6 +15,9 @@ stg/00-network:
 stg/20-compute:
 - '01-terraform-infra/envs/stg/20-compute/**'
 - '01-terraform-infra/modules/**'
+stg/30-bootstrap:
+- '01-terraform-infra/envs/stg/30-bootstrap/**'
+- '01-terraform-infra/modules/**'
 
 
 prod/00-network:
@@ -20,4 +25,7 @@ prod/00-network:
 - '01-terraform-infra/modules/**'
 prod/20-compute:
 - '01-terraform-infra/envs/prod/20-compute/**'
+- '01-terraform-infra/modules/**'
+prod/30-bootstrap:
+- '01-terraform-infra/envs/prod/30-bootstrap/**'
 - '01-terraform-infra/modules/**'
