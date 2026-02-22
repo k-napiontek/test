@@ -1,108 +1,144 @@
-name: "Terraform HCP & GitOps Infra"
+name: "Terraform CI/CD"
 
 on:
   pull_request:
     branches: [ "main" ]
   push:
     branches: [ "main" ]
+  workflow_dispatch:
+  paths:
+    - '01-terraform-infra/**'
 
 jobs:
-  # ==========================================
-  # 1. PLAN: Podwójna matryca (Środowisko x Warstwa)
-  # Uruchamia 6 równoległych jobów (dev-network, dev-compute, stg-network...)
-  # ==========================================
+  filter:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # 6.0.0
+      - name: Paths Changes Filter
+        id: filter
+        uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36 # 3.0.2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          filters: .github/utils/file-filters.yaml
+
+
   terraform-plan:
-    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' && needs.filter.outputs.workspaces != '[]'
+    needs: filter
     strategy:
       fail-fast: false
       matrix:
-        environment: [dev, stg, prod]
-        layer: ["00-network", "20-compute"] # Dodana matryca warstw
-    runs-on: ubuntu-latest
-    
-    # USUNIĘTO: defaults: run: working-directory
-    # Zostajemy w roocie repozytorium, aby HCP widział folder modules/
-    
+        workspace: ${{ fromJSON(needs.filter.outputs.workspaces) }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: hashicorp/setup-terraform@v3
+      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # 6.0.0
+      - uses: hashicorp/setup-terraform@97f030cf6dc0b4f5e0da352c7bca9cca34579800 # 3.1.0
         with:
           cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
-      
-      # Zastosowanie flagi -chdir dla matrycy
-      - run: terraform -chdir=01-terraform-infra/envs/${{ matrix.environment }}/${{ matrix.layer }} init
-      - run: terraform -chdir=01-terraform-infra/envs/${{ matrix.environment }}/${{ matrix.layer }} plan -no-color
-
-  # ==========================================
-  # 2. APPLY DEV: Sekwencyjne wdrażanie warstw (Network -> Compute)
-  # ==========================================
-  terraform-apply-dev:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-    environment: dev
-    steps:
-      - uses: actions/checkout@v4
-      - uses: hashicorp/setup-terraform@v3
+      - name: Terraform Init
+        run: terraform -chdir=01-terraform-infra/envs/${{ matrix.workspace }} init
+      - name: Terraform Plan
+        id: plan
+        run: terraform -chdir=01-terraform-infra/envs/${{ matrix.workspace }} plan -no-color
+        continue-on-error: true
+      - name: Comment PR with Plan
+        uses: actions/github-script@v7
+        env:
+          PLAN: ${{ steps.plan.outputs.stdout }}
+          WORKSPACE: ${{ matrix.workspace }}
         with:
-          cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const output = `#### Terraform Plan dla \`${process.env.WORKSPACE}\` 📖 \`${{ steps.plan.outcome }}\`
+            
+            <details><summary>Pokaż logi z Planu</summary>
+            
+            \`\`\`terraform\n
+            ${process.env.PLAN}
+            \`\`\`
+            
+            </details>
+            
+            *Pusher: @${{ github.actor }}*`;
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: output
+            })
+      - name: Check Plan Status
+        if: steps.plan.outcome == 'failure'
+        run: exit 1
 
-      # --- WARSTWA 1: NETWORK ---
-      - name: Init & Apply Network
-        run: |
-          terraform -chdir=01-terraform-infra/envs/dev/00-network init
-          terraform -chdir=01-terraform-infra/envs/dev/00-network apply -auto-approve
 
-      # --- WARSTWA 2: COMPUTE ---
-      # Uruchomi się dopiero, gdy Network skończy się sukcesem
-      - name: Init & Apply Compute
-        run: |
-          terraform -chdir=01-terraform-infra/envs/dev/20-compute init
-          terraform -chdir=01-terraform-infra/envs/dev/20-compute apply -auto-approve
+  # terraform-apply-dev:
+  #   if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+  #   runs-on: ubuntu-latest
+  #   environment: dev
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - uses: hashicorp/setup-terraform@v3
+  #       with:
+  #         cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
 
-  # ==========================================
-  # 3. APPLY STG: Czeka na DEV (Bramka akceptacji) + Sekwencja warstw
-  # ==========================================
-  terraform-apply-stg:
-    needs: terraform-apply-dev
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-    environment: stg
-    steps:
-      - uses: actions/checkout@v4
-      - uses: hashicorp/setup-terraform@v3
-        with:
-          cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
+  #     # --- WARSTWA 1: NETWORK ---
+  #     - name: Init & Apply Network
+  #       run: |
+  #         terraform -chdir=01-terraform-infra/envs/dev/00-network init
+  #         terraform -chdir=01-terraform-infra/envs/dev/00-network apply -auto-approve
 
-      - name: Init & Apply Network
-        run: |
-          terraform -chdir=01-terraform-infra/envs/stg/00-network init
-          terraform -chdir=01-terraform-infra/envs/stg/00-network apply -auto-approve
+  #     # --- WARSTWA 2: COMPUTE ---
+  #     # Uruchomi się dopiero, gdy Network skończy się sukcesem
+  #     - name: Init & Apply Compute
+  #       run: |
+  #         terraform -chdir=01-terraform-infra/envs/dev/20-compute init
+  #         terraform -chdir=01-terraform-infra/envs/dev/20-compute apply -auto-approve
 
-      - name: Init & Apply Compute
-        run: |
-          terraform -chdir=01-terraform-infra/envs/stg/20-compute init
-          terraform -chdir=01-terraform-infra/envs/stg/20-compute apply -auto-approve
+  # # ==========================================
+  # # 3. APPLY STG: Czeka na DEV (Bramka akceptacji) + Sekwencja warstw
+  # # ==========================================
+  # terraform-apply-stg:
+  #   needs: terraform-apply-dev
+  #   if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+  #   runs-on: ubuntu-latest
+  #   environment: stg
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - uses: hashicorp/setup-terraform@v3
+  #       with:
+  #         cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
 
-  # ==========================================
-  # 4. APPLY PROD: Czeka na STG (Bramka akceptacji) + Sekwencja warstw
-  # ==========================================
-  terraform-apply-prod:
-    needs: terraform-apply-stg
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-    environment: prod
-    steps:
-      - uses: actions/checkout@v4
-      - uses: hashicorp/setup-terraform@v3
-        with:
-          cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
+  #     - name: Init & Apply Network
+  #       run: |
+  #         terraform -chdir=01-terraform-infra/envs/stg/00-network init
+  #         terraform -chdir=01-terraform-infra/envs/stg/00-network apply -auto-approve
 
-      - name: Init & Apply Network
-        run: |
-          terraform -chdir=01-terraform-infra/envs/prod/00-network init
-          terraform -chdir=01-terraform-infra/envs/prod/00-network apply -auto-approve
+  #     - name: Init & Apply Compute
+  #       run: |
+  #         terraform -chdir=01-terraform-infra/envs/stg/20-compute init
+  #         terraform -chdir=01-terraform-infra/envs/stg/20-compute apply -auto-approve
 
-      - name: Init & Apply Compute
-        run: |
-          terraform -chdir=01-terraform-infra/envs/prod/20-compute init
-          terraform -chdir=01-terraform-infra/envs/prod/20-compute apply -auto-approve
+  # # ==========================================
+  # # 4. APPLY PROD: Czeka na STG (Bramka akceptacji) + Sekwencja warstw
+  # # ==========================================
+  # terraform-apply-prod:
+  #   needs: terraform-apply-stg
+  #   if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+  #   runs-on: ubuntu-latest
+  #   environment: prod
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - uses: hashicorp/setup-terraform@v3
+  #       with:
+  #         cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
+
+  #     - name: Init & Apply Network
+  #       run: |
+  #         terraform -chdir=01-terraform-infra/envs/prod/00-network init
+  #         terraform -chdir=01-terraform-infra/envs/prod/00-network apply -auto-approve
+
+  #     - name: Init & Apply Compute
+  #       run: |
+  #         terraform -chdir=01-terraform-infra/envs/prod/20-compute init
+  #         terraform -chdir=01-terraform-infra/envs/prod/20-compute apply -auto-approve

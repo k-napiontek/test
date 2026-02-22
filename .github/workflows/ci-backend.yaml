@@ -86,6 +86,8 @@ on:
       - 'v*'
   pull_request:
     types: [opened, synchronize, reopened]
+  paths:
+    - '02-app-source-code/backend/**'
   workflow_dispatch:
 
 permissions:
