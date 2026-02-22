@@ -43,3 +43,7 @@ variable "cloudwatch_log_retention_days" {
 variable "cluster_name" {
   type = string
 }
+
+variable "test" {
+  
+}
