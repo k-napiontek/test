@@ -44,7 +44,7 @@ func main() {
 	dbURL := os.Getenv("DATABASE_URL") 
 	db, err = sql.Open("postgres", dbURL)
 	if err != nil {
-		log.Fatalf("Błąd połączenia z bazą: %v", err)
+		log.Fatalf("Błąd połączenia z d bazą: %v", err)
 	}
 	log.Println("Working....d, diajdijsa idjaijdsdjsaid")
 	mux := http.NewServeMux()
