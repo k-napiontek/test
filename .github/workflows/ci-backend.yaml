@@ -25,16 +25,11 @@ env:
   IAM_ROLE_ARN: arn:aws:iam::438950223046:role/GitHubActionRole
 
 jobs:
-  # ---------------------------------------------------------
-  # JOB 1: Code Quality (Runs on PRs, Main, and Tags)
-  # ---------------------------------------------------------
   lint:
-    name: Lint and Security Checks
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
-
       - name: Setup Go
         uses: actions/setup-go@v6
         with:
@@ -45,30 +40,14 @@ jobs:
         with:
           working-directory: ./02-app-source-code/backend
 
-      # - name: Install and Run Gosec
-      #   working-directory: ./02-app-source-code/backend
-      #   run: |
-      #     curl -sfL https://raw.githubusercontent.com/securego/gosec/master/install.sh | sh -s -- -b $(go env GOPATH)/bin
-      #     gosec ./...
-
-      # - name: Run Govulncheck
-      #   uses: golang/govulncheck-action@v1
-      #   with:
-      #     work-dir: ./02-app-source-code/backend
-
-  # ---------------------------------------------------------
-  # JOB 2: Automated Release (Runs ONLY on merges to Main)
-  # ---------------------------------------------------------
   release-please:
-    name: Automated Versioning
-    needs: lint
-    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    needs: lint
     steps:
       - name: Run Release Please
         uses: googleapis/release-please-action@v4
         with:
-          # CRITICAL: Use a PAT so the resulting tag triggers the 'push' job below
           token: ${{ secrets.PAT_TOKEN }}
           release-type: go
 
@@ -97,7 +76,7 @@ jobs:
       - name: Build, tag, and push image to Amazon ECR
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          IMAGE_TAG: ${{ github.ref_name }} # Reliably evaluates to the exact Git tag (e.g., 'v1.2.0')
+          IMAGE_TAG: ${{ github.ref_name }}
         run: |
           docker build -t $ECR_REGISTRY/${{ env.ECR_REPOSITORY }}:$IMAGE_TAG ./02-app-source-code/backend
           docker push $ECR_REGISTRY/${{ env.ECR_REPOSITORY }}:$IMAGE_TAG
