@@ -1,0 +1,10 @@
+{{#each commitGroups}}
+### {{title}}
+
+| Commit | Description |
+|--------|-------------|
+{{#each commits}}
+| `{{shortHash}}` | {{#if scope}}**{{scope}}:** {{/if}}{{subject}} |
+{{/each}}
+
+{{/each}}
