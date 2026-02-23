@@ -1,5 +1,6 @@
 clusterName: myapp
-
+region: eu-central-1
+vpcId: vpc-01a517c37d2808550
 serviceAccount:
   annotations:
     eks.amazonaws.com/role-arn: arn:aws:iam::438950223046:role/dev-alb-controller
