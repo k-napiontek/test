@@ -18,6 +18,7 @@ spec:
           - bzyk0945.site          # ← tylko ta domena
         txtOwnerId: dev-cluster    # unikalny per klaster, żeby nie nadpisywały się wzajem
         serviceAccount:
+          name: external-dns-dev
           annotations:
             eks.amazonaws.com/role-arn: arn:aws:iam::438950223046:role/dev-external-dns
   destination:
