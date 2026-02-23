@@ -12,6 +12,9 @@ spec:
       helm:
         valueFiles:
           - $values/03-gitops-infra/manifests/external-dns/values.yaml
+    - repoURL: 'https://github.com/k-napiontek/test.git'
+      targetRevision: HEAD
+      ref: values
   destination:
     server: https://kubernetes.default.svc
     namespace: kube-system
