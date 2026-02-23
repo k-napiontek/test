@@ -10,17 +10,8 @@ spec:
       chart: external-dns
       targetRevision: 1.20.0
       helm:
-      values: |
-        provider: aws
-        aws:
-          region: eu-central-1
-        domainFilters:
-          - bzyk0945.site          # ← tylko ta domena
-        txtOwnerId: dev-cluster    # unikalny per klaster, żeby nie nadpisywały się wzajem
-        serviceAccount:
-          name: external-dns-dev
-          annotations:
-            eks.amazonaws.com/role-arn: arn:aws:iam::438950223046:role/dev-external-dns
+        valueFiles:
+          - $values/03-gitops-infra/manifests/external-dns/values.yaml
   destination:
     server: https://kubernetes.default.svc
     namespace: kube-system
