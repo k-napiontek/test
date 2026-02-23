@@ -12,7 +12,7 @@ spec:
       values: |
         provider: aws
         aws:
-          region: eu-west-1
+          region: eu-central-1
         domainFilters:
           - bzyk0945.site          # ← tylko ta domena
         txtOwnerId: dev-cluster    # unikalny per klaster, żeby nie nadpisywały się wzajem
