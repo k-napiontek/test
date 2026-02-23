@@ -1,24 +1,24 @@
-apiVersion: argoproj.io/v1alpha1
-kind: Application
-metadata:
-  name: backend-stg
-  namespace: argocd
-spec:
-  project: default
+# apiVersion: argoproj.io/v1alpha1
+# kind: Application
+# metadata:
+#   name: backend-stg
+#   namespace: argocd
+# spec:
+#   project: default
 
-  source:
-    repoURL: 'https://github.com/k-napiontek/test.git'
-    targetRevision: HEAD
-    path: 04-gitops-apps/manifests/backend/overlays/stg
+#   source:
+#     repoURL: 'https://github.com/k-napiontek/test.git'
+#     targetRevision: HEAD
+#     path: 04-gitops-apps/manifests/backend/overlays/stg
 
-  destination:
-    # TODO: Update to stg cluster URL after provisioning
-    server: 'https://kubernetes.default.svc'
-    namespace: backend-stg
+#   destination:
+#     # TODO: Update to stg cluster URL after provisioning
+#     server: 'https://kubernetes.default.svc'
+#     namespace: backend-stg
 
-  syncPolicy:
-    automated:
-      prune: true
-      selfHeal: true
-    syncOptions:
-      - CreateNamespace=true
+#   syncPolicy:
+#     automated:
+#       prune: true
+#       selfHeal: true
+#     syncOptions:
+#       - CreateNamespace=true
