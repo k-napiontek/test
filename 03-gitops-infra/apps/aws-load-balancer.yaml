@@ -6,15 +6,15 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://aws.github.io/eks-charts
-    chart: aws-load-balancer-controller
-    targetRevision: 3.0.0
-    helm:
+    - repoURL: https://aws.github.io/eks-charts
+      chart: aws-load-balancer-controller
+      targetRevision: 3.0.0
+      helm:
         valueFiles:
           - $values/03-gitops-infra/manifests/aws-load-balancer/values.yaml
-    destination:
-      server: https://kubernetes.default.svc
-      namespace: kube-system
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: kube-system
   syncPolicy:
     automated:
       prune: true
