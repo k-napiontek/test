@@ -9,5 +9,5 @@ txtOwnerId: myapp
 
 serviceAccount:
   name: external-dns-dev        # ← musi być "external-dns" żeby pasowało do Pod Identity
-  annotations:
-    eks.amazonaws.com/role-arn: arn:aws:iam::438950223046:role/dev-external-dns
+  # annotations:
+  #   eks.amazonaws.com/role-arn: arn:aws:iam::438950223046:role/dev-external-dns
