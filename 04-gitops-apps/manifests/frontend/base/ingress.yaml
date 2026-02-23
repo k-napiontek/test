@@ -9,6 +9,7 @@ metadata:
     alb.ingress.kubernetes.io/target-type: ip
     external-dns.alpha.kubernetes.io/hostname: dev.bzyk0945.site  # ← magia tutaj
 spec:
+  ingressClassName: alb
   rules:
     - host: dev.bzyk0945.site
       http:
