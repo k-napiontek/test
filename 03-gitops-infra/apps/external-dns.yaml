@@ -1,0 +1,28 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: external-dns-dev
+  namespace: argocd
+spec:
+  source:
+    repoURL: https://kubernetes-sigs.github.io/external-dns
+    chart: external-dns
+    targetRevision: 1.20.0
+    helm:
+      values: |
+        provider: aws
+        aws:
+          region: eu-west-1
+        domainFilters:
+          - bzyk0945.site          # ← tylko ta domena
+        txtOwnerId: dev-cluster    # unikalny per klaster, żeby nie nadpisywały się wzajem
+        serviceAccount:
+          annotations:
+            eks.amazonaws.com/role-arn: arn:aws:iam::438950223046:role/dev-external-dns
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: kube-system
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true

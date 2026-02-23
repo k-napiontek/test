@@ -1,0 +1,5 @@
+clusterName: myapp
+
+serviceAccount:
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::438950223046:role/dev-alb-controller

@@ -1,3 +1,10 @@
+
+
+
+
+
+
+
 # AWS EKS Production Platform
 
 A production-grade Kubernetes platform on AWS demonstrating end-to-end GitOps delivery — from infrastructure provisioning through automated deployments to controlled production promotions. Built as a portfolio project to showcase real-world cloud engineering practices at scale.
