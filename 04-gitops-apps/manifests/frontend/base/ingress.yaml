@@ -1,13 +1,16 @@
-apiVersion: networking.k8s.io/v1
-kind: Ingress
+# ingress.yaml
 metadata:
-  name: frontend
-  namespace: dev
   annotations:
-    kubernetes.io/ingress.class: alb
     alb.ingress.kubernetes.io/scheme: internet-facing
     alb.ingress.kubernetes.io/target-type: ip
-    external-dns.alpha.kubernetes.io/hostname: dev.bzyk0945.site  # ← magia tutaj
+
+    # HTTPS
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP":80,"HTTPS":443}]'
+    alb.ingress.kubernetes.io/ssl-redirect: '443'        # ← HTTP → HTTPS redirect
+    alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:eu-central-1:438950223046:certificate/TWOJ-CERT-ARN
+
+    external-dns.alpha.kubernetes.io/hostname: dev.bzyk0945.site
+
 spec:
   ingressClassName: alb
   rules:

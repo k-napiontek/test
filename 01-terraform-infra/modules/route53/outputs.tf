@@ -9,3 +9,6 @@ output "name_servers" {
 output "external_dns_role_arn" {
   value = aws_iam_role.external_dns.arn
 }
+output "certificate_arn" {
+  value = aws_acm_certificate.main.arn
+}

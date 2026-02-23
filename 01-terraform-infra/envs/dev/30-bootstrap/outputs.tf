@@ -14,3 +14,7 @@ output "name_servers" {
 output "external_dns_role_arn" {
   value = module.route53.external_dns_role_arn
 }
+
+output "certificate_arn" {
+  value = module.route53.certificate_arn
+}
