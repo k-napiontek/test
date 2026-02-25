@@ -2,23 +2,24 @@ name: Digger GitOps CI/CD
 
 on:
   pull_request:
-    branches: [ "main" ]
-    # KRYTYCZNE DLA MONOREPO: Uruchamiaj tylko, gdy zmieniają się pliki infry!
+    branches: [main]
     paths:
       - '01-terraform-infra/**'
-      - 'digger.yml' # Nasłuchuj też na zmiany samej konfiguracji Diggera
+      - 'digger.yml'
   issue_comment:
     types: [created]
 
 permissions:
-  contents: write      # Wymagane do tagowania/commitowania
-  pull-requests: write # Wymagane, aby Digger mógł dodawać komentarze z planem
-  statuses: write      # Wymagane do ustawiania statusu checków w PR
-  id-token: write      # KRYTYCZNE: Wymagane dla AWS OIDC (bezhasłowe logowanie)
+  contents: write
+  pull-requests: write
+  statuses: write
+  id-token: write
 
 jobs:
   digger-job:
     runs-on: ubuntu-latest
+    env:
+      TERRAGRUNT_TFPATH: tofu
     steps:
       - name: Checkout repozytorium
         uses: actions/checkout@v4
@@ -26,22 +27,24 @@ jobs:
       - name: Instalacja OpenTofu
         uses: opentofu/setup-opentofu@v1
         with:
-          tofu-version: 1.11.5 # Dopasuj do wersji, której używasz lokalnie
+          tofu-version: 1.11.5
 
-      - name: Install Terragrunt and OpenTofu
-        uses: gruntwork-io/terragrunt-action@v3
-        with:
-          tg_version: '0.99.4'
+      - name: Instalacja Terragrunt
+        run: |
+          TG_VERSION="0.77.22"
+          curl -sL "https://github.com/gruntwork-io/terragrunt/releases/download/v${TG_VERSION}/terragrunt_linux_amd64" -o /usr/local/bin/terragrunt
+          chmod +x /usr/local/bin/terragrunt
+          terragrunt --version
 
-      - name: Konfiguracja autoryzacji AWS OIDC
+      - name: Konfiguracja AWS
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: eu-central-1 # Zmień na swój region, np. us-east-1
+          aws-region: eu-central-1
 
       - name: Uruchomienie Diggera
-        uses: diggerhq/digger@752c62656bacf1e83ac9b9a3adfd3b7f0fb67fc6 # Użyj najnowszej stabilnej wersji
+        uses: diggerhq/digger@752c62656bacf1e83ac9b9a3adfd3b7f0fb67fc6
         env:
           GITHUB_CONTEXT: ${{ toJson(github) }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
