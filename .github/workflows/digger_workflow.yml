@@ -28,10 +28,8 @@ jobs:
         with:
           tofu-version: 1.11.5 # Dopasuj do wersji, której używasz lokalnie
 
-      - name: Instalacja Terragrunt
-        uses: autero1/action-terragrunt@v2
-        with:
-          terragrunt-version: 0.99.4 # Dopasuj do wersji z pliku versions.tf
+      - name: Install Terragrunt and OpenTofu
+        uses: gruntwork-io/terragrunt-action@v3
 
       - name: Konfiguracja autoryzacji AWS OIDC
         uses: aws-actions/configure-aws-credentials@v4
