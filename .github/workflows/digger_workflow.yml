@@ -1,66 +1,46 @@
-name: OpenTaco (Infrastruktura)
+name: Digger GitOps CI/CD
 
 on:
   pull_request:
     branches: [ "main" ]
-    types: [ opened, synchronize, closed ]
-    # Optymalizacja Monorepo: Akcja uruchomi się TYLKO, gdy zmienisz kod w folderze infra
-    paths:
-      - '01-terraform-infra/**'
-      - 'digger.yml'
+    types: [ opened, synchronize ]
   issue_comment:
-    types: [ created ]
+    types: [created] # Pozwala na uruchamianie poleceń Diggera (np. digger apply) z komentarzy w PR
+  push:
+    branches: [ "main" ] # Opcjonalne: automatyczny apply po merge do main
 
 permissions:
-  contents: write
-  pull-requests: write
-  statuses: write
-  id-token: write      # ABSOLUTNIE KRYTYCZNE: Uprawnienie do wygenerowania tokenu JWT dla AWS OIDC
+  contents: write      # Wymagane do tagowania/commitowania
+  pull-requests: write # Wymagane, aby Digger mógł dodawać komentarze z planem
+  statuses: write      # Wymagane do ustawiania statusu checków w PR
+  id-token: write      # KRYTYCZNE: Wymagane dla AWS OIDC (bezhasłowe logowanie)
 
 jobs:
   digger-job:
-    name: OpenTaco / Terragrunt Orkiestracja
     runs-on: ubuntu-latest
-    
-    # Warunek uruchomienia:
-    # 1. To jest Pull Request (wtedy ścieżki z bloku 'on' decydują o starcie)
-    # LUB
-    # 2. To jest komentarz w PR i zawiera słowo kluczowe "digger" lub "opentaco"
-    if: >-
-      (github.event_name == 'pull_request') ||
-      (github.event_name == 'issue_comment' && github.event.issue.pull_request && (contains(github.event.comment.body, 'digger') || contains(github.event.comment.body, 'opentaco')))
-
     steps:
-      - name: 📥 Checkout kodu
+      - name: Checkout repozytorium
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0 # Wymagane dla analizy różnic w Terragruncie
 
-      - name: 🔐 Konfiguracja AWS Credentials (OIDC)
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: arn:aws:iam::438950223046:role/Twoja-Rola-GitHub-OIDC # <--- PODMIEŃ ARN
-          aws-region: eu-central-1 # <--- PODMIEŃ REGION
-
-      - name: ⚙️ Setup OpenTofu
+      - name: Instalacja OpenTofu
         uses: opentofu/setup-opentofu@v1
         with:
-          tofu-version: 1.6.0 # Dobrą praktyką jest usztywnienie wersji na produkcji
+          tofu-version: 1.11.5 # Dopasuj do wersji, której używasz lokalnie
 
-      - name: ⚙️ Setup Terragrunt
-        run: |
-          TG_VERSION="v0.55.0" # Zgodnie z Twoimi preferencjami
-          curl -sLo terragrunt https://github.com/gruntwork-io/terragrunt/releases/download/${TG_VERSION}/terragrunt_linux_amd64
-          chmod +x terragrunt
-          sudo mv terragrunt /usr/local/bin/
-
-      - name: 🚀 Run OpenTaco (Digger)
-        uses: diggerhq/digger@vLatest
+      - name: Instalacja Terragrunt
+        uses: autero1/action-terragrunt@v2
         with:
-          # Wyłączamy wbudowane instalatory, ponieważ przygotowaliśmy własne (Tofu+Terragrunt i OIDC)
-          setup-aws: false
-          setup-terraform: false
-          no-backend: true # Wymusza tryb Standalone (Community) bez łączenia z chmurą Diggera
+          terragrunt-version: 0.99.4 # Dopasuj do wersji z pliku versions.tf
+
+      - name: Konfiguracja autoryzacji AWS OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: eu-central-1 # Zmień na swój region, np. us-east-1
+
+      - name: Uruchomienie Diggera
+        uses: diggerhq/digger@v0.4.x # Użyj najnowszej stabilnej wersji
         env:
           GITHUB_CONTEXT: ${{ toJson(github) }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
