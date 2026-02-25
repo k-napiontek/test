@@ -13,7 +13,7 @@ dependency "network" {
     vpc_id              = "vpc-00000000000000000"
     vpc_private_subnets = ["subnet-00000000000000001", "subnet-00000000000000002"]
   }
-  mock_outputs_allowed_terraform_commands = ["validate", "plan"]
+  mock_outputs_allowed_terraform_commands = ["validate", "plan", "init"]
 }
 
 locals {
