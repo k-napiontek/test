@@ -1,0 +1,82 @@
+version: '3.8'
+
+networks:
+  app_network:
+    driver: bridge
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: secretpassword
+      POSTGRES_DB: authdb
+    ports:
+      - "5432:5432"
+    networks:
+      - app_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d authdb"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    networks:
+      - app_network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  auth-service:
+    build:
+      context: ./auth-service
+      dockerfile: Dockerfile
+    environment:
+      DATABASE_URL: postgres://admin:secretpassword@postgres:5432/authdb?sslmode=disable
+    ports:
+      - "9091:9090"
+    networks:
+      - app_network
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  basket-service:
+    build:
+      context: ./basket-service
+      dockerfile: Dockerfile
+    environment:
+      REDIS_URL: redis://redis:6379
+    ports:
+      - "9092:9090"
+    networks:
+      - app_network
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  client-service:
+    build:
+      context: ./client-service
+      dockerfile: Dockerfile
+    networks:
+      - app_network
+
+  api-gateway:
+    image: nginx:alpine
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    ports:
+      - "80:80"
+    networks:
+      - app_network
+    depends_on:
+      - auth-service
+      - basket-service
+      - client-service

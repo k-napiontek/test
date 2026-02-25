@@ -1,0 +1,16 @@
+generate_projects:
+  # Krok 1: Chcesz zacząć TYLKO od stagingu? 
+  # Ogranicz skanowanie tylko do tego podkatalogu.
+  include: "01-terraform-infra/envs/staging/**"
+  terragrunt: true
+
+workflows:
+  default:
+    plan:
+      steps:
+        - init
+        - plan
+    apply:
+      steps:
+        - init
+        - apply

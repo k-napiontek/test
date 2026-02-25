@@ -59,13 +59,16 @@ resource "helm_release" "argocd" {
 }
 
 resource "kubectl_manifest" "root_infra" {
-  yaml_body = file("${path.module}/../../../03-gitops-infra/root-infra.yaml")
+  yaml_body = file(var.root_infra_yaml_path)
+  # yaml_body = file("${path.module}/../../../03-gitops-infra/root-infra.yaml")
 
   depends_on = [ helm_release.argocd ]
 }
 
 resource "kubectl_manifest" "root_apps" {
-  yaml_body = file("${path.module}/../../../04-gitops-apps/root-apps.yaml")
+  yaml_body = file(var.root_apps_yaml_path)
+
+  # yaml_body = file("${path.module}/../../../04-gitops-apps/root-apps.yaml")
 
   depends_on = [ helm_release.argocd, kubectl_manifest.root_infra ]
 }

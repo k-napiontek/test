@@ -37,3 +37,11 @@ variable "values_file_path" {
 }
 
 variable "eks_cluster_name" {}
+
+variable "root_infra_yaml_path" {
+  type = string
+}
+
+variable "root_apps_yaml_path" {
+  type = string
+}

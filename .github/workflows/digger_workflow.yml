@@ -1,0 +1,66 @@
+name: OpenTaco (Infrastruktura)
+
+on:
+  pull_request:
+    branches: [ "main" ]
+    types: [ opened, synchronize, closed ]
+    # Optymalizacja Monorepo: Akcja uruchomi się TYLKO, gdy zmienisz kod w folderze infra
+    paths:
+      - '01-terraform-infra/**'
+      - 'digger.yml'
+  issue_comment:
+    types: [ created ]
+
+permissions:
+  contents: write
+  pull-requests: write
+  statuses: write
+  id-token: write      # ABSOLUTNIE KRYTYCZNE: Uprawnienie do wygenerowania tokenu JWT dla AWS OIDC
+
+jobs:
+  digger-job:
+    name: OpenTaco / Terragrunt Orkiestracja
+    runs-on: ubuntu-latest
+    
+    # Warunek uruchomienia:
+    # 1. To jest Pull Request (wtedy ścieżki z bloku 'on' decydują o starcie)
+    # LUB
+    # 2. To jest komentarz w PR i zawiera słowo kluczowe "digger" lub "opentaco"
+    if: >-
+      (github.event_name == 'pull_request') ||
+      (github.event_name == 'issue_comment' && github.event.issue.pull_request && (contains(github.event.comment.body, 'digger') || contains(github.event.comment.body, 'opentaco')))
+
+    steps:
+      - name: 📥 Checkout kodu
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Wymagane dla analizy różnic w Terragruncie
+
+      - name: 🔐 Konfiguracja AWS Credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::438950223046:role/Twoja-Rola-GitHub-OIDC # <--- PODMIEŃ ARN
+          aws-region: eu-central-1 # <--- PODMIEŃ REGION
+
+      - name: ⚙️ Setup OpenTofu
+        uses: opentofu/setup-opentofu@v1
+        with:
+          tofu-version: 1.6.0 # Dobrą praktyką jest usztywnienie wersji na produkcji
+
+      - name: ⚙️ Setup Terragrunt
+        run: |
+          TG_VERSION="v0.55.0" # Zgodnie z Twoimi preferencjami
+          curl -sLo terragrunt https://github.com/gruntwork-io/terragrunt/releases/download/${TG_VERSION}/terragrunt_linux_amd64
+          chmod +x terragrunt
+          sudo mv terragrunt /usr/local/bin/
+
+      - name: 🚀 Run OpenTaco (Digger)
+        uses: diggerhq/digger@vLatest
+        with:
+          # Wyłączamy wbudowane instalatory, ponieważ przygotowaliśmy własne (Tofu+Terragrunt i OIDC)
+          setup-aws: false
+          setup-terraform: false
+          no-backend: true # Wymusza tryb Standalone (Community) bez łączenia z chmurą Diggera
+        env:
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
