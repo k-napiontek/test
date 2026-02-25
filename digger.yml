@@ -1,22 +1,9 @@
-terragrunt: true
-
 generate_projects:
-  include:
-    # Wchodzimy precyzyjnie w ścieżkę monorepo -> envs -> staging -> warstwa
-    - "01-terraform-infra/envs/staging/*"
-  
-  exclude:
-    # Agresywnie odcinamy Diggera od plików, które nie są wdrażalnymi warstwami
-    - "01-terraform-infra/modules/**"
-    - "01-terraform-infra/layers/**"
-    # Odcinamy też inne środowiska i pliki współdzielone na ten moment
-    - "01-terraform-infra/global/**"
-    - "01-terraform-infra/envs/dev/**"
-    - "01-terraform-infra/envs/prod/**"
-    # Odcinamy cały kod aplikacji i manifesty, żeby parser tam nie wszedł
-    - "02-app-source-code/**"
-    - "03-gitops-infra/**"
-    - "04-gitops-apps/**"
+  blocks:
+    - block_name: staging
+      terragrunt: true
+      root_dir: "01-terraform-infra/envs/staging/"
+      workflow: default
 
 workflows:
   default:
