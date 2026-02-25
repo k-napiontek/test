@@ -16,9 +16,12 @@ generate_projects:
       terragrunt: true
       root_dir: "01-terraform-infra/envs/staging/"
       workflow: default
-      include_patterns: 
+      include_patterns:
         - "01-terraform-infra/modules/**"
         - "01-terraform-infra/layers/**"
+        - "01-terraform-infra/envs/staging/env.hcl"
+        - "01-terraform-infra/envs/_env.hcl"
+        - "01-terraform-infra/terragrunt.hcl"
 
     # # --- ŚRODOWISKO PROD ---
     # - block_name: prod
