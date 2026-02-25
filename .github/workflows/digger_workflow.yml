@@ -3,11 +3,12 @@ name: Digger GitOps CI/CD
 on:
   pull_request:
     branches: [ "main" ]
-    types: [ opened, synchronize ]
+    # KRYTYCZNE DLA MONOREPO: Uruchamiaj tylko, gdy zmieniają się pliki infry!
+    paths:
+      - '01-terraform-infra/**'
+      - 'digger.yml' # Nasłuchuj też na zmiany samej konfiguracji Diggera
   issue_comment:
-    types: [created] # Pozwala na uruchamianie poleceń Diggera (np. digger apply) z komentarzy w PR
-  push:
-    branches: [ "main" ] # Opcjonalne: automatyczny apply po merge do main
+    types: [created]
 
 permissions:
   contents: write      # Wymagane do tagowania/commitowania
