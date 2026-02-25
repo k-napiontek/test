@@ -1,6 +1,6 @@
 locals {
   env          = "stg"
-  cluster_name = "k8s-crypto-stg"
+  cluster_name = "k8s-crypto-stg1"
 
   # 00-network
   vpc_cidr             = "10.1.0.0/16"
