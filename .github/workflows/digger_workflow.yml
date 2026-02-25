@@ -1,47 +1,38 @@
-name: Digger GitOps CI/CD
+name: Digger Workflow
 
 on:
-  pull_request:
-    branches: [ "main" ]
-    # KRYTYCZNE DLA MONOREPO: Uruchamiaj tylko, gdy zmieniają się pliki infry!
-    paths:
-      - '01-terraform-infra/**'
-      - 'digger.yml' # Nasłuchuj też na zmiany samej konfiguracji Diggera
-  issue_comment:
-    types: [created]
+  workflow_dispatch:
+    inputs:
+      spec:
+        required: true
+      run_name:
+        required: false
 
-permissions:
-  contents: write      # Wymagane do tagowania/commitowania
-  pull-requests: write # Wymagane, aby Digger mógł dodawać komentarze z planem
-  statuses: write      # Wymagane do ustawiania statusu checków w PR
-  id-token: write      # KRYTYCZNE: Wymagane dla AWS OIDC (bezhasłowe logowanie)
+run-name: '${{inputs.run_name}}'
 
 jobs:
   digger-job:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write      # required to merge PRs
+      actions: write       # required for plan persistence
+      id-token: write      # required for workload-identity-federation
+      pull-requests: write # required to post PR comments
+      issues: read         # required to check if PR number is an issue or not
+      statuses: write      # required to validate combined PR status
+
     steps:
-      - name: Checkout repozytorium
-        uses: actions/checkout@v4
-
-      - name: Instalacja OpenTofu
-        uses: opentofu/setup-opentofu@v1
+      - uses: actions/checkout@v4
+      - name: ${{ fromJSON(github.event.inputs.spec).job_id }}
+        run: echo "job id ${{ fromJSON(github.event.inputs.spec).job_id }}"
+      - uses: diggerhq/digger@vLatest
         with:
-          tofu-version: 1.11.5 # Dopasuj do wersji, której używasz lokalnie
-
-      - name: Instalacja Terragrunt
-        uses: autero1/action-terragrunt@v2
-        with:
-          terragrunt-version: 0.99.4 # Dopasuj do wersji z pliku versions.tf
-
-      - name: Konfiguracja autoryzacji AWS OIDC
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
+          digger-spec: ${{ inputs.spec }}
+          setup-aws: true
+          setup-terragrunt: true
+          terragrunt-version: 0.44.1
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: eu-central-1 # Zmień na swój region, np. us-east-1
-
-      - name: Uruchomienie Diggera
-        uses: diggerhq/digger@v0.4.x # Użyj najnowszej stabilnej wersji
         env:
           GITHUB_CONTEXT: ${{ toJson(github) }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
