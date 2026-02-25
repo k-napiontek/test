@@ -30,6 +30,8 @@ jobs:
 
       - name: Install Terragrunt and OpenTofu
         uses: gruntwork-io/terragrunt-action@v3
+        with:
+          tg_version: '0.99.4'
 
       - name: Konfiguracja autoryzacji AWS OIDC
         uses: aws-actions/configure-aws-credentials@v4

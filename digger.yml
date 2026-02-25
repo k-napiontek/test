@@ -1,12 +1,47 @@
+comment_render_mode: "group_by_module"
+
 generate_projects:
   blocks:
+    # # --- ŚRODOWISKO DEV ---
+    # - block_name: dev
+    #   terragrunt: true
+    #   root_dir: "01-terraform-infra/envs/dev/"
+    #   workflow: default
+    #   include_patterns: 
+    #     - "01-terraform-infra/modules/**"
+    #     - "01-terraform-infra/layers/**"
+
+    # --- ŚRODOWISKO STAGING ---
     - block_name: staging
       terragrunt: true
       root_dir: "01-terraform-infra/envs/staging/"
       workflow: default
+      include_patterns: 
+        - "01-terraform-infra/modules/**"
+        - "01-terraform-infra/layers/**"
+
+    # # --- ŚRODOWISKO PROD ---
+    # - block_name: prod
+    #   terragrunt: true
+    #   root_dir: "01-terraform-infra/envs/prod/"
+    #   workflow: production # Celowo inny workflow dla produkcji!
+    #   include_patterns: 
+    #     - "01-terraform-infra/modules/**"
+    #     - "01-terraform-infra/layers/**"
 
 workflows:
   default:
+    plan:
+      steps:
+        - init
+        - plan
+    apply:
+      steps:
+        - init
+        - apply
+
+  # Oddzielny przepływ dla produkcji przygotowany pod dodatkowe restrykcje
+  production:
     plan:
       steps:
         - init
