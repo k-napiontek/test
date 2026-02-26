@@ -20,3 +20,4 @@ inputs = {
   public_subnet_cidrs  = local.env_vars.locals.public_subnet_cidrs
   single_nat_gateway   = local.env_vars.locals.single_nat_gateway
 }
+# trigger deploy
