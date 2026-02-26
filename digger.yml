@@ -1,36 +1,50 @@
-comment_render_mode: "group_by_module"
+traverse_to_nested_projects: false
+auto_merge: false
+pr_locks: true
+comment_render_mode: basic
+respect_layers: true
 
 generate_projects:
   blocks:
-    # # --- ŚRODOWISKO DEV ---
-    # - block_name: dev
-    #   terragrunt: true
-    #   root_dir: "01-terraform-infra/envs/dev/"
-    #   workflow: default
-    #   include_patterns: 
-    #     - "01-terraform-infra/modules/**"
-    #     - "01-terraform-infra/layers/**"
+    - block_name: shared
+      terragrunt: true
+      root_dir: "01-terraform-infra/envs/shared/"
+      workflow: default
+      include_patterns: ["01-terraform-infra/modules/ecr/**"]
 
-    # --- ŚRODOWISKO STAGING ---
+    - block_name: dev
+      terragrunt: true
+      root_dir: "01-terraform-infra/envs/dev/"
+      workflow: with-infracost
+      include_patterns:
+        - "01-terraform-infra/modules/**"
+        - "01-terraform-infra/root.hcl"
+        - "01-terraform-infra/envs/_env.hcl"
+
     - block_name: staging
       terragrunt: true
       root_dir: "01-terraform-infra/envs/staging/"
       workflow: default
       include_patterns:
         - "01-terraform-infra/modules/**"
-        - "01-terraform-infra/layers/**"
-        - "01-terraform-infra/envs/staging/env.hcl"
+        - "01-terraform-infra/root.hcl"
         - "01-terraform-infra/envs/_env.hcl"
-        - "01-terraform-infra/terragrunt.hcl"
 
-    # # --- ŚRODOWISKO PROD ---
-    # - block_name: prod
-    #   terragrunt: true
-    #   root_dir: "01-terraform-infra/envs/prod/"
-    #   workflow: production # Celowo inny workflow dla produkcji!
-    #   include_patterns: 
-    #     - "01-terraform-infra/modules/**"
-    #     - "01-terraform-infra/layers/**"
+    - block_name: prod
+      terragrunt: true
+      root_dir: "01-terraform-infra/envs/prod/"
+      workflow: with-approval
+      include_patterns:
+        - "01-terraform-infra/modules/**"
+        - "01-terraform-infra/root.hcl"
+        - "01-terraform-infra/envs/_env.hcl"
+
+  terragrunt_parsing:
+    parallel: true
+    createProjectName: true
+    createWorkspace: true
+    defaultWorkflow: default
+    executionOrderGroups: true
 
 workflows:
   default:
@@ -42,9 +56,28 @@ workflows:
       steps:
         - init
         - apply
+    workflow_configuration:
+      on_pull_request_pushed: [digger plan]
+      on_pull_request_closed: [digger unlock]
+      on_commit_to_default: [digger unlock]
 
-  # Oddzielny przepływ dla produkcji przygotowany pod dodatkowe restrykcje
-  production:
+  with-infracost:
+    plan:
+      steps:
+        - init
+        - plan
+        - run: infracost breakdown --path=. --format=json --out-file=/tmp/infracost-${PROJECT_NAME}.json 2>/dev/null || true
+        - run: infracost output --path=/tmp/infracost-${PROJECT_NAME}.json --format=table 2>/dev/null | tee -a $DIGGER_OUT || true
+    apply:
+      steps:
+        - init
+        - apply
+    workflow_configuration:
+      on_pull_request_pushed: [digger plan]
+      on_pull_request_closed: [digger unlock]
+      on_commit_to_default: [digger unlock]
+
+  with-approval:
     plan:
       steps:
         - init
@@ -53,3 +86,7 @@ workflows:
       steps:
         - init
         - apply
+    workflow_configuration:
+      on_pull_request_pushed: [digger plan]
+      on_pull_request_closed: [digger unlock]
+      on_commit_to_default: [digger unlock]

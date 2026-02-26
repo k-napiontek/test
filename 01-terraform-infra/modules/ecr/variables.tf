@@ -1,15 +1,32 @@
-variable "repository_name" {
-  type        = string
-  description = "Name of the ECR repository"
+variable "repositories" {
+  type        = map(any)
+  description = "Map of ECR repository names to their config (e.g. read_write_arns)"
+}
+
+variable "pull_account_arns" {
+  type        = list(string)
+  default     = []
+  description = "Account root ARNs that can pull images (cross-account)"
 }
 
 variable "github_repo" {
   type        = string
-  description = "GitHub repository in format owner/repo (e.g. myorg/project-1.02.2026)"
+  default     = null
+  description = "GitHub repository in format owner/repo for OIDC push access"
+}
+
+variable "create_github_oidc_provider" {
+  type    = bool
+  default = true
+}
+
+variable "github_oidc_provider_arn" {
+  type        = string
+  default     = null
+  description = "Existing GitHub OIDC provider ARN (skip creation if set)"
 }
 
 variable "tags" {
-  type        = map(string)
-  default     = {}
-  description = "Tags for all resources"
+  type    = map(string)
+  default = {}
 }

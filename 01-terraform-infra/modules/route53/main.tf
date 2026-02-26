@@ -1,69 +1,22 @@
 resource "aws_route53_zone" "main" {
-  name    = "bzyk0945.site"
+  name    = var.domain_root
   comment = "Managed by Terraform"
-}
 
-
-resource "aws_iam_role" "external_dns" {
-  name = "${var.env}-external-dns"
-
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [{
-      Effect    = "Allow"
-      Principal = { Service = "pods.eks.amazonaws.com" }
-      Action    = ["sts:AssumeRole", "sts:TagSession"]
-    }]
-  })
-}
-
-resource "aws_iam_policy" "external_dns" {
-  name = "${var.env}-external-dns-policy"
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Effect   = "Allow"
-        Action   = ["route53:ChangeResourceRecordSets"]
-        Resource = ["arn:aws:route53:::hostedzone/*"]
-      },
-      {
-        Effect   = "Allow"
-        Action   = [
-          "route53:ListHostedZones",
-          "route53:ListResourceRecordSets"
-        ]
-        Resource = ["*"]
-      }
-    ]
-  })
-}
-
-resource "aws_iam_role_policy_attachment" "external_dns" {
-  role       = aws_iam_role.external_dns.name
-  policy_arn = aws_iam_policy.external_dns.arn
-}
-
-resource "aws_eks_pod_identity_association" "external_dns" {
-  cluster_name    = var.cluster_name
-  namespace       = "kube-system"
-  service_account = "external-dns" # important
-  role_arn        = aws_iam_role.external_dns.arn
+  tags = var.tags
 }
 
 resource "aws_acm_certificate" "main" {
-  domain_name               = "bzyk0945.site"
-  subject_alternative_names = [
-    "*.bzyk0945.site"        # ← wildcard pokrywa dev/stg/prod jednym certem
-  ]
-  validation_method = "DNS"  # ← automatyczna walidacja przez Route53
+  domain_name               = var.domain_root
+  subject_alternative_names = ["*.${var.domain_root}"]
+  validation_method         = "DNS"
+
+  tags = var.tags
 
   lifecycle {
-    create_before_destroy = true  # ← ważne przy renewalach
+    create_before_destroy = true
   }
 }
 
-# Automatyczna walidacja DNS — Route53 + ACM gadają ze sobą
 resource "aws_route53_record" "cert_validation" {
   for_each = {
     for dvo in aws_acm_certificate.main.domain_validation_options : dvo.domain_name => {

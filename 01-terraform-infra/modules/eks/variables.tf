@@ -1,16 +1,30 @@
-variable "cluster_name" {}
-variable "kubernetes_version" {}
-variable "vpc_id" {}
+variable "env" {
+  type = string
+}
+
+variable "cluster_name" {
+  type = string
+}
+
+variable "kubernetes_version" {
+  type    = string
+  default = "1.32"
+}
+
+variable "vpc_id" {
+  type = string
+}
+
 variable "subnet_ids" {
   type = list(string)
 }
 
-variable "cluster_endpoint_public_access" {
+variable "endpoint_public_access" {
   type    = bool
   default = false
 }
 
-variable "cluster_endpoint_public_access_cidrs" {
+variable "endpoint_public_access_cidrs" {
   type    = list(string)
   default = ["0.0.0.0/0"]
 }
@@ -20,14 +34,39 @@ variable "cloudwatch_log_retention_days" {
   default = 90
 }
 
-variable "eks_managed_node_groups" {
-  type    = any
-  default = {}
+variable "node_instance_types" {
+  type    = list(string)
+  default = ["t3.small"]
 }
 
-variable "addons" {
-  type    = any
-  default = {}
+variable "node_min_size" {
+  type    = number
+  default = 1
+}
+
+variable "node_max_size" {
+  type    = number
+  default = 3
+}
+
+variable "node_desired_size" {
+  type    = number
+  default = 1
+}
+
+variable "node_disk_size" {
+  type    = number
+  default = 20
+}
+
+variable "ami_type" {
+  type    = string
+  default = "AL2023_x86_64_STANDARD"
+}
+
+variable "capacity_type" {
+  type    = string
+  default = "ON_DEMAND"
 }
 
 variable "tags" {

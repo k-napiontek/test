@@ -1,19 +1,14 @@
-output "repository_url" {
-  value       = module.ecr.repository_url
-  description = "URL of the ECR repository"
+output "repository_urls" {
+  value       = { for k, v in module.ecr : k => v.repository_url }
+  description = "Map of repository name to URL"
 }
 
-output "repository_name" {
-  value       = module.ecr.repository_name
-  description = "Name of the ECR repository"
+output "repository_arns" {
+  value       = { for k, v in module.ecr : k => v.repository_arn }
+  description = "Map of repository name to ARN"
 }
 
-output "repository_arn" {
-  value       = module.ecr.repository_arn
-  description = "ARN of the ECR repository"
-}
-
-output "github_role_arn" {
-  value       = module.iam_role.arn
-  description = "ARN of the IAM role for GitHub Actions (use in role-to-assume)"
+output "github_role_arns" {
+  value       = { for k, v in module.github_actions_role : k => v.arn }
+  description = "Map of repository name to GitHub Actions IAM role ARN"
 }
