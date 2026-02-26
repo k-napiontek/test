@@ -11,7 +11,7 @@ dependency "network" {
 
   mock_outputs_allowed_terraform_commands = ["validate", "plan", "init"]
   mock_outputs = {
-    vpc_id          = "vpc-mock"
+    vpc_id          = "vpc-mock1"
     private_subnets = ["subnet-mock-1", "subnet-mock-2"]
   }
 }
