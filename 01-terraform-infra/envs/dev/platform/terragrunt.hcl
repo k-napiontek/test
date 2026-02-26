@@ -56,3 +56,5 @@ inputs = {
   root_infra_yaml_path = "${get_repo_root()}/03-gitops-infra/root-infra.yaml"
   root_apps_yaml_path  = "${get_repo_root()}/04-gitops-apps/dev-appset.yaml"
 }
+
+# test
