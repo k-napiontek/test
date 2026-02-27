@@ -24,9 +24,8 @@ generate_projects:
     - block_name: staging
       terragrunt: true
       root_dir: "01-terraform-infra/envs/staging/"
-      workflow: default
+      workflow: with-approval
       include_patterns:
-        - "01-terraform-infra/modules/**"
         - "01-terraform-infra/root.hcl"
         - "01-terraform-infra/envs/_env.hcl"
 
@@ -35,7 +34,6 @@ generate_projects:
       root_dir: "01-terraform-infra/envs/prod/"
       workflow: with-approval
       include_patterns:
-        - "01-terraform-infra/modules/**"
         - "01-terraform-infra/root.hcl"
         - "01-terraform-infra/envs/_env.hcl"
 
