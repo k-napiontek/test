@@ -43,7 +43,7 @@ generate_projects:
     parallel: true
     createProjectName: true
     createWorkspace: true
-    # defaultWorkflow: default
+    defaultWorkflow: default
     executionOrderGroups: true
     cascadeDependencies: false  
     triggerProjectsFromDirOnly: true 
