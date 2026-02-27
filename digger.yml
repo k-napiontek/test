@@ -15,7 +15,7 @@ generate_projects:
     - block_name: dev
       terragrunt: true
       root_dir: "01-terraform-infra/envs/dev/"
-      workflow: default
+      workflow: with-infracost
       include_patterns:
         - "01-terraform-infra/modules/**"
         - "01-terraform-infra/root.hcl"
@@ -68,6 +68,21 @@ workflows:
       steps:
         - init
         - plan
+    apply:
+      steps:
+        - init
+        - apply
+    workflow_configuration:
+      on_pull_request_pushed: [digger plan]
+      on_pull_request_closed: [digger unlock]
+      on_commit_to_default: [digger unlock]
+
+  with-infracost:
+    plan:
+      steps:
+        - init
+        - plan
+        - run: infracost breakdown --path=. | tee -a $DIGGER_OUT
     apply:
       steps:
         - init
