@@ -54,6 +54,7 @@ workflows:
       steps:
         - init
         - plan
+        - run: checkov --directory . --output cli | tee -a $DIGGER_OU
         - run: infracost breakdown --path=. | tee -a $DIGGER_OUT
     apply:
       steps:
@@ -83,6 +84,7 @@ workflows:
       steps:
         - init
         - plan
+        - run: checkov --directory . --output cli | tee -a $DIGGER_OU
         - run: infracost breakdown --path=. | tee -a $DIGGER_OUT
     apply:
       steps:
