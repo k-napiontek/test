@@ -45,6 +45,8 @@ generate_projects:
     createWorkspace: true
     defaultWorkflow: default
     executionOrderGroups: true
+    cascadeDependencies: false  
+    triggerProjectsFromDirOnly: true 
 
 workflows:
   default:
