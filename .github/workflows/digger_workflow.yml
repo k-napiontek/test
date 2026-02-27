@@ -30,7 +30,7 @@ jobs:
           digger-spec: ${{ inputs.spec }}
           setup-aws: true
           aws-region: eu-central-1
-          aws-role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          aws-role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
           setup-opentofu: true
           opentofu-version: 1.11.0
           setup-terragrunt: true
