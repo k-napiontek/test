@@ -15,7 +15,7 @@ generate_projects:
     - block_name: dev
       terragrunt: true
       root_dir: "01-terraform-infra/envs/dev/"
-      workflow: with-infracost
+      workflow: default
       include_patterns:
         - "01-terraform-infra/modules/**"
         - "01-terraform-infra/root.hcl"
