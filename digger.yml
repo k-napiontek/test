@@ -54,7 +54,7 @@ workflows:
       steps:
         - init
         - plan
-        - run: checkov --directory . --output cli --download-external-modules | tee -a $DIGGER_OUT
+        - run: checkov -d . --framework terraform
         - run: infracost breakdown --path=. | tee -a $DIGGER_OUT
     apply:
       steps:
@@ -84,7 +84,7 @@ workflows:
       steps:
         - init
         - plan
-        - run: checkov --directory . --output cli --download-external-modules | tee -a $DIGGER_OUT
+        - run: checkov -d . --framework terraform
         - run: infracost breakdown --path=. | tee -a $DIGGER_OUT
     apply:
       steps:
