@@ -27,15 +27,24 @@ module "eks" {
   enabled_log_types                      = ["api", "audit", "authenticator"]
 
   addons = {
-    coredns = { most_recent = true }
-    kube-proxy = { most_recent = true }
-    vpc-cni = { most_recent = true }
-    aws-ebs-csi-driver = {
-      most_recent              = true
-      service_account_role_arn = module.ebs_csi_irsa.iam_role_arn
-    }
-    eks-pod-identity-agent = { most_recent = true }
+  coredns    = { most_recent = true }
+  kube-proxy = { most_recent = true }
+
+  vpc-cni = {
+    most_recent    = true
+    before_compute = true 
   }
+
+  eks-pod-identity-agent = {
+    most_recent    = true
+    before_compute = true  # 
+  }
+
+  aws-ebs-csi-driver = {
+    most_recent              = true
+    service_account_role_arn = module.ebs_csi_irsa.iam_role_arn
+  }
+}
 
   eks_managed_node_groups = {
     default = {

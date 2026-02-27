@@ -10,8 +10,8 @@ locals {
   single_nat_gateway   = true
 
   # --- EKS ---
-  kubernetes_version   = "1.32"
-  node_instance_types  = ["t3.small"]
+  kubernetes_version   = "1.34"
+  node_instance_types  = ["c7i-flex.large"]
   node_min_size        = 1
   node_max_size        = 3
   node_desired_size    = 1
