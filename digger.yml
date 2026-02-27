@@ -57,6 +57,7 @@ workflows:
         - run: |
             terragrunt show -json tfplan.binary > plan.json 2>/dev/null || true
             checkov -f plan.json --output cli | tee -a $DIGGER_OUT
+        - run: infracost breakdown --path=. | tee -a $DIGGER_OUT
     apply:
       steps:
         - init
