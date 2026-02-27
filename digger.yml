@@ -54,61 +54,107 @@ workflows:
       steps:
         - init
         - plan
+        
+        # 1. CHECKOV: Uruchamiamy zawsze, dla każdego środowiska (Bezpieczeństwo na 1 miejscu!)
         - run: |
             echo "=== CHECKOV SECURITY REPORT ===" | tee -a $DIGGER_OUT
             PLAN_FILE=$(find "$(pwd)" -name "*.tfplan" | head -n 1)
             if [ -n "$PLAN_FILE" ]; then
-            terragrunt show -json "$PLAN_FILE" > plan.json
-            checkov -f plan.json --output cli --soft-fail | tee -a $DIGGER_OUT
+              terragrunt show -json "$PLAN_FILE" > plan.json
+              checkov -f plan.json --output cli --quiet --compact --soft-fail | tee -a $DIGGER_OUT
             else
-            echo "Error: Plan file for Checkov not found!" | tee -a $DIGGER_OUT
+              echo "Error: Plan file for Checkov not found!" | tee -a $DIGGER_OUT
             fi
             echo " " | tee -a $DIGGER_OUT
-        - run: infracost breakdown --path=. | tee -a $DIGGER_OUT
+
+        # 2. INFRACOST: Uruchamiamy TYLKO, gdy w nazwie projektu jest "_dev_"
+        - run: |
+            if [[ "$PROJECT_NAME" == *"_dev_"* ]]; then
+              echo "=== INFRACOST REPORT ===" | tee -a $DIGGER_OUT
+              infracost breakdown --path=. | tee -a $DIGGER_OUT
+            else
+              echo "Skipping Infracost for environment: $PROJECT_NAME"
+            fi
+
     apply:
       steps:
         - init
         - apply
+        
     workflow_configuration:
       on_pull_request_pushed: [digger plan]
       on_pull_request_closed: [digger unlock]
       on_commit_to_default: [digger unlock]
 
-  with-approval:
-    plan:
-      steps:
-        - init
-        - plan
-    apply:
-      steps:
-        - init
-        - apply
-    workflow_configuration:
-      on_pull_request_pushed: [digger plan]
-      on_pull_request_closed: [digger unlock]
-      on_commit_to_default: [digger unlock]
 
-  with-infracost:
-    plan:
-      steps:
-        - init
-        - plan
-        - run: |
-            echo "=== CHECKOV SECURITY REPORT ===" | tee -a $DIGGER_OUT
-            PLAN_FILE=$(find "$(pwd)" -name "*.tfplan" | head -n 1)
-            if [ -n "$PLAN_FILE" ]; then
-            terragrunt show -json "$PLAN_FILE" > plan.json
-            checkov -f plan.json --output cli --soft-fail | tee -a $DIGGER_OUT
-            else
-            echo "Error: Plan file for Checkov not found!" | tee -a $DIGGER_OUT
-            fi
-            echo " " | tee -a $DIGGER_OUT
-        - run: infracost breakdown --path=. | tee -a $DIGGER_OUT
-    apply:
-      steps:
-        - init
-        - apply
-    workflow_configuration:
-      on_pull_request_pushed: [digger plan]
-      on_pull_request_closed: [digger unlock]
-      on_commit_to_default: [digger unlock]
+
+
+
+
+
+
+
+# workflows:
+#   default:
+#     plan:
+#       steps:
+#         - init
+#         - plan
+#         - run: |
+#             echo "=== CHECKOV SECURITY REPORT ===" | tee -a $DIGGER_OUT
+#             PLAN_FILE=$(find "$(pwd)" -name "*.tfplan" | head -n 1)
+#             if [ -n "$PLAN_FILE" ]; then
+#             terragrunt show -json "$PLAN_FILE" > plan.json
+#             checkov -f plan.json --output cli --soft-fail | tee -a $DIGGER_OUT
+#             else
+#             echo "Error: Plan file for Checkov not found!" | tee -a $DIGGER_OUT
+#             fi
+#             echo " " | tee -a $DIGGER_OUT
+#         - run: infracost breakdown --path=. | tee -a $DIGGER_OUT
+#     apply:
+#       steps:
+#         - init
+#         - apply
+#     workflow_configuration:
+#       on_pull_request_pushed: [digger plan]
+#       on_pull_request_closed: [digger unlock]
+#       on_commit_to_default: [digger unlock]
+
+#   with-approval:
+#     plan:
+#       steps:
+#         - init
+#         - plan
+#     apply:
+#       steps:
+#         - init
+#         - apply
+#     workflow_configuration:
+#       on_pull_request_pushed: [digger plan]
+#       on_pull_request_closed: [digger unlock]
+#       on_commit_to_default: [digger unlock]
+
+#   with-infracost:
+#     plan:
+#       steps:
+#         - init
+#         - plan
+#         - run: |
+#             echo "=== CHECKOV SECURITY REPORT ===" | tee -a $DIGGER_OUT
+#             PLAN_FILE=$(find "$(pwd)" -name "*.tfplan" | head -n 1)
+#             if [ -n "$PLAN_FILE" ]; then
+#             terragrunt show -json "$PLAN_FILE" > plan.json
+#             checkov -f plan.json --output cli --soft-fail | tee -a $DIGGER_OUT
+#             else
+#             echo "Error: Plan file for Checkov not found!" | tee -a $DIGGER_OUT
+#             fi
+#             echo " " | tee -a $DIGGER_OUT
+#         - run: infracost breakdown --path=. | tee -a $DIGGER_OUT
+#     apply:
+#       steps:
+#         - init
+#         - apply
+#     workflow_configuration:
+#       on_pull_request_pushed: [digger plan]
+#       on_pull_request_closed: [digger unlock]
+#       on_commit_to_default: [digger unlock]
