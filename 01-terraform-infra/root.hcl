@@ -7,6 +7,8 @@ locals {
   project    = local.common_vars.locals.project
   account_id = local.account_vars.locals.account_id
   layer      = basename(get_terragrunt_dir())
+
+  base_module_url = "git::https://github.com/k-napiontek/test.git//01-terraform-infra/modules"
 }
 
 terraform_binary = "tofu"
