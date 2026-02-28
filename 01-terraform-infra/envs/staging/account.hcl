@@ -1,5 +1,5 @@
 locals {
-  account_id   = "STAGING_ACCOUNT_ID"
+  account_id   = "003537953782"
   account_name = "staging"
-  role_arn     = "arn:aws:iam::STAGING_ACCOUNT_ID:role/TerraformExecutionRole"
+  role_arn     = "arn:aws:iam::003537953782:role/TerraformExecutionRole"
 }
