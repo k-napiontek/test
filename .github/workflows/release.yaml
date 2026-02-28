@@ -1,37 +1,37 @@
-name: Semantic Release
+# name: Semantic Release
 
-on:
-  push:
-    branches:
-      - main
-  workflow_dispatch:
+# on:
+#   push:
+#     branches:
+#       - main
+#   workflow_dispatch:
 
-permissions:
-  contents: write
-  issues: write
-  pull-requests: write
+# permissions:
+#   contents: write
+#   issues: write
+#   pull-requests: write
 
-jobs:
-  release:
-    name: Release to GitHub
-    runs-on: ubuntu-24.04
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          token: ${{ secrets.PAT_TOKEN }}
+# jobs:
+#   release:
+#     name: Release to GitHub
+#     runs-on: ubuntu-24.04
+#     steps:
+#       - name: Checkout Code
+#         uses: actions/checkout@v4
+#         with:
+#           fetch-depth: 0
+#           token: ${{ secrets.PAT_TOKEN }}
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
+#       - name: Setup Node.js
+#         uses: actions/setup-node@v4
+#         with:
+#           node-version: '20'
 
-      - name: Install Semantic Release and Plugins
-        run: |
-          npm install -g semantic-release @semantic-release/commit-analyzer @semantic-release/release-notes-generator @semantic-release/github
+#       - name: Install Semantic Release and Plugins
+#         run: |
+#           npm install -g semantic-release @semantic-release/commit-analyzer @semantic-release/release-notes-generator @semantic-release/github
 
-      - name: Run Semantic Release
-        env:
-          GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
-        run: npx semantic-release
+#       - name: Run Semantic Release
+#         env:
+#           GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
+#         run: npx semantic-release
