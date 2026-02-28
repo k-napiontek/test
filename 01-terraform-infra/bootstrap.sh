@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+export AWS_PAGER=""
 # ---------------------------------------------------------------
 # bootstrap.sh — one-time setup per AWS account
 #
@@ -19,7 +20,7 @@ set -euo pipefail
 TARGET_ACCOUNT_ID="${1:?Usage: $0 <TARGET_ACCOUNT_ID> <MANAGEMENT_ACCOUNT_ID>}"
 MANAGEMENT_ACCOUNT_ID="${2:?Usage: $0 <TARGET_ACCOUNT_ID> <MANAGEMENT_ACCOUNT_ID>}"
 REGION="eu-central-1"
-BUCKET="tfstate-${TARGET_ACCOUNT_ID}"
+BUCKET="tfstate-${TARGET_ACCOUNT_ID}-v2" # TODO: CHANGE TO ${TARGET_ACCOUNT_ID}
 ROLE_NAME="TerraformExecutionRole"
 
 echo "==> Bootstrapping account ${TARGET_ACCOUNT_ID} (trusted by ${MANAGEMENT_ACCOUNT_ID})"

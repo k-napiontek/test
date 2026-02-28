@@ -19,7 +19,7 @@ generate "backend" {
       required_version = ">= 1.11.0"
 
       backend "s3" {
-        bucket       = "tfstate-${local.account_id}"
+        bucket       = "tfstate-${local.account_id}-v2" # TODO: CHANGE TO ${local.account_id}
         key          = "${local.env}/${local.layer}/terraform.tfstate"
         region       = "eu-central-1"
         encrypt      = true
