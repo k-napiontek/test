@@ -5,7 +5,7 @@
     "01-terraform-infra/modules/rds": "1.0.0",
     "01-terraform-infra/modules/alb-controller": "1.0.0",
     "01-terraform-infra/modules/route53": "1.0.0",
-    "02-app-source-code/payments": "1.0.0",
-    "02-app-source-code/backend": "1.0.0",
-    "02-app-source-code/frontend": "1.0.0"
+    "02-app-source-code/auth-service": "1.0.0",
+    "02-app-source-code/basket-service": "1.0.0",
+    "02-app-source-code/client-service": "1.0.0"
 }

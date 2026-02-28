@@ -23,11 +23,8 @@
     "01-terraform-infra/modules/route53": {
       "release-type": "terraform-module",
       "component": "infra-route53"
-    },
-    "02-app-source-code/payments": {
-      "release-type": "node",
-      "component": "app-payments"
     }
+   
   },
   "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json"
 }
