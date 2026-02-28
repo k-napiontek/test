@@ -1,9 +1,10 @@
 include "root" {
   path = find_in_parent_folders("root.hcl")
+  expose = "base_module_url"
 }
 
 terraform {
-  source = "${get_repo_root()}//01-terraform-infra/modules/eks"
+  source = "${include.root.locals.base_module_url}/eks?ref=infra-eks-v1.1.0"
 }
 
 dependency "network" {

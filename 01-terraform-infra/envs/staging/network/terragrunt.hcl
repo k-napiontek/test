@@ -4,7 +4,6 @@ include "root" {
 }
 
 terraform {
-  // source = "${get_repo_root()}//01-terraform-infra/modules/vpc"
   source = "${include.root.locals.base_module_url}/vpc?ref=infra-vpc-v1.1.0"
 }
 
