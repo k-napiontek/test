@@ -75,3 +75,36 @@ spec:
           selfHeal: true
         syncOptions:
           - CreateNamespace=true
+---
+---
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: dev-external-secrets-config
+  namespace: argocd
+spec:
+  generators:
+    - list:
+        elements:
+          - env: dev
+  template:
+    metadata:
+      name: '{{env}}-external-secrets-config'
+      namespace: argocd
+      annotations:
+        argocd.argoproj.io/sync-wave: "1"
+    spec:
+      project: default
+      source:
+        repoURL: 'https://github.com/k-napiontek/test.git'
+        targetRevision: HEAD
+        path: '03-gitops-infra/manifests/external-secrets/{{env}}'
+      destination:
+        server: 'https://kubernetes.default.svc'
+        namespace: external-secrets
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true

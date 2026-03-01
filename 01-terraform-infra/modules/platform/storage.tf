@@ -1,5 +1,5 @@
 resource "aws_s3_bucket" "loki" {
-  bucket = "${var.env}-${var.cluster_name}-loki-chunks"
+  bucket = "${var.cluster_name}-loki-chunks"
   tags   = var.tags
 }
 
