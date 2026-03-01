@@ -33,6 +33,8 @@ backend:
       memory: 256Mi
     limits:
       memory: 512Mi
+  persistence:
+    volumeClaimsEnabled: false # TODO: IN PROD ENABLE VOLUME CLAIMS
 
 gateway:
   replicas: 1
