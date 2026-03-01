@@ -14,7 +14,7 @@ locals {
   node_instance_types  = ["c7i-flex.large"]
   node_min_size        = 1
   node_max_size        = 3
-  node_desired_size    = 1
+  node_desired_size    = 2
   node_disk_size       = 20
 
   # --- RDS ---
