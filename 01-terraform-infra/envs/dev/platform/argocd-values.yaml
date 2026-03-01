@@ -10,3 +10,16 @@ server:
       alb.ingress.kubernetes.io/certificate-arn: "arn:aws:acm:eu-central-1:438950223046:certificate/34160dca-1fb3-46f2-9135-f802289d0a62"
       external-dns.alpha.kubernetes.io/hostname: argocd.dev.bzyk0945.site
     hostname: argocd.dev.bzyk0945.site
+
+configs:
+  cm:
+    resource.customizations.ignoreDifferences.admissionregistration.k8s.io_MutatingWebhookConfiguration: |
+      jsonPointers:
+        - /webhooks/0/clientConfig/caBundle
+        - /webhooks/1/clientConfig/caBundle
+        - /webhooks/2/clientConfig/caBundle
+    resource.customizations.ignoreDifferences.admissionregistration.k8s.io_ValidatingWebhookConfiguration: |
+      jsonPointers:
+        - /webhooks/0/clientConfig/caBundle
+        - /webhooks/1/clientConfig/caBundle
+        - /webhooks/2/clientConfig/caBundle
