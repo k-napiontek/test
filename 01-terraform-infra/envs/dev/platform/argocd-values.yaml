@@ -12,6 +12,3 @@ server:
 
   extraArgs:
     - --insecure
-configs:
-  cm:
-    kustomize.buildOptions: "--enable-helm"
