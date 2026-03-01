@@ -7,7 +7,7 @@ resource "aws_route53_zone" "main" {
 
 resource "aws_acm_certificate" "main" {
   domain_name               = var.domain_root
-  subject_alternative_names = ["*.${var.domain_root}"]
+  subject_alternative_names = ["*.${var.domain_root}", "*.dev.${var.domain_root}"]
   validation_method         = "DNS"
 
   tags = var.tags
@@ -19,17 +19,17 @@ resource "aws_acm_certificate" "main" {
 
 resource "aws_route53_record" "cert_validation" {
   for_each = {
-    for dvo in aws_acm_certificate.main.domain_validation_options : dvo.domain_name => {
+    for dvo in aws_acm_certificate.main.domain_validation_options : dvo.resource_record_name => {
       name   = dvo.resource_record_name
       type   = dvo.resource_record_type
       record = dvo.resource_record_value
-    }
+    }...
   }
 
-  zone_id = aws_route53_zone.main.zone_id
-  name    = each.value.name
-  type    = each.value.type
-  records = [each.value.record]
+    zone_id = aws_route53_zone.main.zone_id
+  name    = each.value[0].name
+  type    = each.value[0].type
+  records = [each.value[0].record]
   ttl     = 60
 }
 

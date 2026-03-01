@@ -7,7 +7,7 @@ metadata:
     alb.ingress.kubernetes.io/target-type: ip
     alb.ingress.kubernetes.io/listen-ports: '[{"HTTP":80},{"HTTPS":443}]'
     alb.ingress.kubernetes.io/ssl-redirect: "443"
-    alb.ingress.kubernetes.io/certificate-arn: "arn:aws:acm:eu-central-1:438950223046:certificate/595940b7-b4fe-4628-a187-261a85febe65"
+    alb.ingress.kubernetes.io/certificate-arn: "arn:aws:acm:eu-central-1:438950223046:certificate/34160dca-1fb3-46f2-9135-f802289d0a62"
     external-dns.alpha.kubernetes.io/hostname: dev.bzyk0945.site
 spec:
   ingressClassName: alb
