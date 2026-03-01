@@ -16,10 +16,6 @@ alertmanager:
 
 grafana:
   ingress:
-    enabled: false
-
-grafana:
-  ingress:
     enabled: true
     ingressClassName: alb
     annotations:
@@ -30,3 +26,4 @@ grafana:
       alb.ingress.kubernetes.io/certificate-arn: "arn:aws:acm:eu-central-1:438950223046:certificate/34160dca-1fb3-46f2-9135-f802289d0a62"
       external-dns.alpha.kubernetes.io/hostname: grafana.dev.bzyk0945.site
     hostname: grafana.dev.bzyk0945.site
+    
