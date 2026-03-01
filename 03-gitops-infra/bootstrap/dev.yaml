@@ -55,6 +55,7 @@ spec:
           - ServerSideApply=true
           - PrunePropagationPolicy=foreground
           - PruneLast=true
+          - RespectIgnoreDifferences=true
 ---
 # ApplicationSet 2: Raw YAML manifesty (ClusterIssuers)
 apiVersion: argoproj.io/v1alpha1
