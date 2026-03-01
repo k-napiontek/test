@@ -19,19 +19,6 @@ spec:
         argocd.argoproj.io/sync-wave: "-1"
     spec:
       project: default
-      ignoreDifferences:
-        - group: admissionregistration.k8s.io
-          kind: MutatingWebhookConfiguration
-          jqPathExpressions:
-            - '.webhooks[]?.clientConfig.caBundle'
-        - group: admissionregistration.k8s.io
-          kind: ValidatingWebhookConfiguration
-          jqPathExpressions:
-            - '.webhooks[]?.clientConfig.caBundle'
-        - kind: Secret
-          name: aws-load-balancer-tls
-          jqPathExpressions:
-            - '.data'
       sources:
         - repoURL: '{{repoURL}}'
           chart: '{{chart}}'
@@ -55,7 +42,6 @@ spec:
           - ServerSideApply=true
           - PrunePropagationPolicy=foreground
           - PruneLast=true
-          - RespectIgnoreDifferences=true
 ---
 # ApplicationSet 2: Raw YAML manifesty (ClusterIssuers)
 apiVersion: argoproj.io/v1alpha1
