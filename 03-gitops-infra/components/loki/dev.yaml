@@ -1,3 +1,11 @@
+gateway:
+  replicas: 1
+
+chunksCache:
+  allocatedMemory: 512Mi
+  persistence:
+    enabled: false
+
 loki:
   storage:
     bucketNames:
