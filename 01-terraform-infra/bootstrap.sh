@@ -93,3 +93,26 @@ aws iam attach-role-policy \
 
 echo "    Role ${ROLE_NAME} ready with AdministratorAccess."
 echo "==> Bootstrap complete for account ${TARGET_ACCOUNT_ID}."
+
+
+
+# {
+#     "Version": "2012-10-17",
+#     "Statement": [
+#         {
+#             "Sid": "AssumeChildAccountRoles",
+#             "Effect": "Allow",
+#             "Action": "sts:AssumeRole",
+#             "Resource": [
+#                 "arn:aws:iam::188494185951:role/TerraformExecutionRole",
+#                 "arn:aws:iam::003537953782:role/TerraformExecutionRole"
+#             ]
+#         },
+#         {
+#             "Sid": "DiggerDynamoDBLocks",
+#             "Effect": "Allow",
+#             "Action": "dynamodb:*",
+#             "Resource": "arn:aws:dynamodb:eu-central-1:438950223046:table/DiggerDynamoDBLockTable"
+#         }
+#     ]
+# }

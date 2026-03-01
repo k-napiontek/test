@@ -21,19 +21,21 @@ generate "backend" {
       required_version = ">= 1.11.0"
 
       backend "s3" {
-        bucket       = "tfstate-${local.account_id}-v2" # TODO: CHANGE TO ${local.account_id}
+        bucket       = "tfstate-${local.account_id}-v3" # TODO: CHANGE TO ${local.account_id}
         key          = "${local.env}/${local.layer}/terraform.tfstate"
         region       = "eu-central-1"
         encrypt      = true
         use_lockfile = true
 
-        assume_role = {
-          role_arn = "${local.account_vars.locals.role_arn}"
-        }
+        
       }
     }
   EOF
 }
+
+// assume_role = {
+//           role_arn = "${local.account_vars.locals.role_arn}"  # DODAJ DO GENERATE BACKEND TERRAFORM
+//         }
 
 generate "provider" {
   path      = "provider_generated.tf"
@@ -42,9 +44,7 @@ generate "provider" {
     provider "aws" {
       region = "eu-central-1"
 
-      assume_role {
-        role_arn = "${local.account_vars.locals.role_arn}"
-      }
+      
 
       default_tags {
         tags = {
@@ -56,3 +56,7 @@ generate "provider" {
     }
   EOF
 }
+
+// assume_role {
+//         role_arn = "${local.account_vars.locals.role_arn}" # DODAJ DO GENERATE PROVIDER TERRAFORM
+//       }

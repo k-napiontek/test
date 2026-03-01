@@ -1,0 +1,11 @@
+clusterName: "dev-main"
+vpcId: "vpc-06f7c333bbc07b158" 
+
+replicaCount: 1
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    memory: 256Mi

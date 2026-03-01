@@ -1,0 +1,26 @@
+# 1. TANI PROMETHEUS
+prometheus:
+  prometheusSpec:
+    # Tylko 1 replika
+    replicas: 1
+    # Zatrzymujemy dane tylko na 2 dni
+    retention: 2d
+    # Ograniczamy zużycie RAM
+    resources:
+      requests:
+        memory: "512Mi"
+      limits:
+        memory: "1Gi"
+    # Nie tworzymy dysku EBS! Jak pod zginie, metryki przepadają (na devie to ok)
+    storageSpec:
+      emptyDir: {}
+
+# 2. TANI ALERTMANAGER
+alertmanager:
+  alertmanagerSpec:
+    replicas: 1
+
+# 3. GRAFANA BEZ INGRESSA (Dostęp przez port-forward)
+grafana:
+  ingress:
+    enabled: false

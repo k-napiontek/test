@@ -1,6 +1,6 @@
 include "root" {
   path = find_in_parent_folders("root.hcl")
-  expose = "base_module_url"
+  expose = true
 }
 
 terraform {
