@@ -52,7 +52,8 @@ inputs = {
   cluster_name = dependency.compute.outputs.cluster_name
   domain_root  = local.common_vars.locals.domain_root
 
-  argocd_values_path   = "${get_terragrunt_dir()}/argocd-values.yaml"
-  root_infra_yaml_path = "${get_repo_root()}/03-gitops-infra/bootstrap/dev.yaml"
-  root_apps_yaml_path  = "${get_repo_root()}/04-gitops-apps/appsets/dev.yaml"
+  root_apps_yaml_path               = "${get_repo_root()}/04-gitops-apps/appsets/dev.yaml"
+  root_infra_yaml_path              = "${get_repo_root()}/03-gitops-infra/appsets/dev-infra.yaml"
+  root_issuers_yaml_path            = "${get_repo_root()}/03-gitops-infra/appsets/dev-issuers.yaml"
+  root_external_secrets_yaml_path   = "${get_repo_root()}/03-gitops-infra/appsets/dev-external-secrets.yaml"
 }

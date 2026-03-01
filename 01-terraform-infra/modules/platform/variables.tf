@@ -26,6 +26,15 @@ variable "root_apps_yaml_path" {
   type        = string
   description = "Path to root-apps ApplicationSet manifest"
 }
+variable "root_issuers_yaml_path" {
+  type        = string
+  description = "Path to cert-manager issuers ApplicationSet manifest"
+}
+
+variable "root_external_secrets_yaml_path" {
+  type        = string
+  description = "Path to external-secrets config ApplicationSet manifest"
+}
 
 variable "tags" {
   type    = map(string)
