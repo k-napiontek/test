@@ -22,7 +22,7 @@ grafana:
   additionalDataSources:
     - name: Loki
       type: loki
-      url: http://loki-gateway.monitoring.svc:80
+      url: http://dev-infra-loki-gateway.monitoring.svc:80
       access: proxy
       isDefault: false
 
