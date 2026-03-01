@@ -53,6 +53,6 @@ inputs = {
   domain_root  = local.common_vars.locals.domain_root
 
   argocd_values_path   = "${get_terragrunt_dir()}/argocd-values.yaml"
-  root_infra_yaml_path = "${get_repo_root()}/03-gitops-infra/dev-infra-appset.yaml"
+  root_infra_yaml_path = "${get_repo_root()}/03-gitops-infra/bootstrap/dev.yaml"
   root_apps_yaml_path  = "${get_repo_root()}/04-gitops-apps/dev-appset.yaml"
 }

@@ -1,5 +1,5 @@
 clusterName: "dev-main"
-vpcId: "vpc-06f7c333bbc07b158" 
+vpcId: "vpc-06f7c333bbc07b158"
 
 replicaCount: 1
 

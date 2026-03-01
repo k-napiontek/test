@@ -4,6 +4,5 @@ serviceAccount:
   create: true
   name: cert-manager-sa
 
-# Czasami wymagane, aby cert-manager miał uprawnienia do zapisu na dysku EKS
 securityContext:
   fsGroup: 1001
