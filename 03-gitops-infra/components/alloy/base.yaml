@@ -1,0 +1,20 @@
+alloy:
+  configMap:
+    content: |
+      // Discover pods
+      discovery.kubernetes "pods" {
+        role = "pod"
+      }
+
+      // Collect logs
+      loki.source.kubernetes "pods" {
+        targets    = discovery.kubernetes.pods.targets
+        forward_to = [loki.write.default.receiver]
+      }
+
+      // Send to Loki
+      loki.write "default" {
+        endpoint {
+          url = "http://loki-gateway.monitoring.svc:80/loki/api/v1/push"
+        }
+      }

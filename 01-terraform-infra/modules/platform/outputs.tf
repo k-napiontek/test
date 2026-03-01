@@ -1,5 +1,5 @@
 output "alb_controller_role_arn" {
-  value = module.alb_controller.alb_controller_role_arn
+  value = module.alb_controller_iam.role_arn
 }
 
 output "zone_id" {
@@ -15,7 +15,7 @@ output "certificate_arn" {
 }
 
 output "external_dns_role_arn" {
-  value = aws_iam_role.external_dns.arn
+  value = module.external_dns_iam.role_arn
 }
 
 output "argocd_namespace" {
